@@ -1,0 +1,8 @@
+@startuml M3L
+package m3l{
+    class Main{
+    }
+    class Structure{
+    }
+}
+@enduml
