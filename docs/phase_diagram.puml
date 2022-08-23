@@ -1,13 +1,20 @@
 @startuml M3L
-package m3l{
-    class Main{
+package structure{
+    class Lattice{
+        -acell: float
+        -bcell: float
+        -ccell: float
+        -a1: float
+        -a2: float
+        -a3: float
+        -b1: float
+        -b2: float
+        -b3: float
+        -c1: float
+        -c2: float
+        -c3: float
+        setVolume()
+        getVolume()
     }
-    class Structure{
-    }
-    class Settings{
-
-    }
-    Main -o Structure
-    Settings o- Main
 }
 @enduml

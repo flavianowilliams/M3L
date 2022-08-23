@@ -2,11 +2,8 @@ LICENSE
 README.md
 pyproject.toml
 src/m3l/__init__.py
-src/m3l/main.py
-src/m3l/settings.py
+src/m3l/structure.py
 src/m3l.egg-info/PKG-INFO
 src/m3l.egg-info/SOURCES.txt
 src/m3l.egg-info/dependency_links.txt
 src/m3l.egg-info/top_level.txt
-src/m3l/system/__init__.py
-src/m3l/system/structure.py
