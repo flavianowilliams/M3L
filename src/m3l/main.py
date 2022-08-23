@@ -14,7 +14,7 @@ sys.path=list()
 sys.path.insert(0, str(path_root))
 
 import settings
-from system import structure
+from system.structure import Cell
 
-def teste():
-    return print(structure.mensagem)
+def lattice(a, b, c):
+    return Cell(a, b, c)
