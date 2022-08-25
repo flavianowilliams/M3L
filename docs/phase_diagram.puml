@@ -16,5 +16,11 @@ package structure{
         setVolume()
         getVolume()
     }
+    class System{
+        -natoms: int
+        setXYZ()
+        getNatoms()
+    }
+    Lattice <|- System
 }
 @enduml
