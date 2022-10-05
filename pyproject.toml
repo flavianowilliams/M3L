@@ -1,6 +1,6 @@
 [project]
 name = "m3l"
-version = "2022.8.dev0"
+version = "2022.9.dev0"
 authors = [
   { name="Flaviano Williams Fernandes", email="flaviano.fernandes@ifpr.edu.br" },
 ]
@@ -16,3 +16,7 @@ classifiers = [
 
 [project.urls]
 "Homepage" = "https://github.com/flavianowilliams"
+
+[build-system]
+requires = ["setuptools>=61.0", "numpy"]
+build-backend = "setuptools.build_meta"

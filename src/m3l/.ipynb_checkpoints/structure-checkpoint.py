@@ -6,23 +6,9 @@ Created on Tue Aug  9 10:07:12 2022
 @author: flaviano
 """
 
-import logging
-import sys
-from scipy import constants as cte
+import numpy as np
 
-logging.basicConfig(
-    level=logging.WARNING,
-    filename="structure.log",
-    format="%(asctime)s:%(levelname)s:%(message)s"
-    )
-
-class Constant():
-    __aconv = 1.e+10*cte.value('atomic unit of length')
-
-    def getAconv(self):
-        return self.__aconv
-
-class Lattice(Constant):
+class Lattice():
     def __init__(self, a, b, c):
         self.__acell = a
         self.__bcell = b
@@ -56,21 +42,18 @@ class Lattice(Constant):
         return self.__ccell
 
     def setVolume(self):
-        self.__volume = {'value': self.__acell*self.__bcell*self.__ccell, 'unit': 'A³'}
+        self.__volume = self.__acell*self.__bcell*self.__ccell
 
     def getVolume(self):
         return self.__volume
 
 class System(Lattice):
-
     def __init__(self, a, b, c, filename):
         self.setAcell(a)
         self.setBcell(b)
         self.setCcell(c)
-        self.setXYZ(filename)
-        self.convertUnits()
-        self.setCCP()
         self.setVolume()
+        self.setXYZ(filename)
 
     def setXYZ(self, filename):
         with open(filename, 'r') as xyz_file:
@@ -85,32 +68,18 @@ class System(Lattice):
                 p4 = float(p4)
                 self.atoms.append({'id': i, 'atom': p1, 'x': p2, 'y': p3, 'z': p4})
 
-    def setCCP(self):
-        if self.getAcell() > 0.0 and self.getBcell() > 0.0 and self.getCcell() > 0.0:
-            for at in self.atoms:
-                at['x'] = at['x']+self.getAcell()*int(at['x']/self.getAcell())
-                at['y'] = at['y']+self.getBcell()*int(at['y']/self.getBcell())
-                at['z'] = at['z']+self.getCcell()*int(at['z']/self.getCcell())
-        else:
-            logging.critical('Constant lattice must be larger than zero!')
-            logging.info('Job turned out')
-            sys.exit()
-
-    def convertUnits(self):
-        self.setAcell(self.getAcell()/self.getAconv())
-        self.setBcell(self.getBcell()/self.getAconv())
-        self.setCcell(self.getCcell()/self.getAconv())
-        for at in self.atoms:
-            at['x'] = at['x']/self.getAconv()
-            at['y'] = at['y']/self.getAconv()
-            at['z'] = at['z']/self.getAconv()
-
     def getNatoms(self):
         return self.__natoms
+
+    def reciprocal_lattice(self):
+        for at in self.atoms:
+            at['x'] = at['x']+at['x']*int(at['x']/self.getAcell())
+            at['y'] = at['y']+at['y']*int(at['y']/self.getBcell())
+            at['z'] = at['z']+at['z']*int(at['z']/self.getCcell())
 
     def __str__(self):
         return (
             '\nCélula unitária ortorrômbica\n\n'
-            +'Volume: {} {}\n\n'.format(self.getVolume()['value']*self.getAconv()**3, self.getVolume()['unit'])
+            +'Volume: {} A**3\n\n'.format(self.getVolume())
             +'Total: {} átomos\n'.format(self.getNatoms())
         )

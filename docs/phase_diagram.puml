@@ -15,12 +15,19 @@ package structure{
         -c3: float
         setVolume()
         getVolume()
+        setAcell()
+        getAcell()
+        setBcell()
+        getBcell()
+        setCcell()
+        getCcell()
     }
     class System{
         -natoms: int
         setXYZ()
+        convertUnits()
         getNatoms()
     }
-    Lattice <|- System
+    System --|> Lattice
 }
 @enduml
