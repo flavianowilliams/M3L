@@ -4,7 +4,6 @@ module forcefield
 
         implicit none
     
-
         integer :: i,j,nx
         real(8) :: dr
         integer, intent(in) :: natom
