@@ -18,5 +18,5 @@ classifiers = [
 "Homepage" = "https://github.com/flavianowilliams"
 
 [build-system]
-requires = ["setuptools>=61.0", "numpy"]
+requires = ["setuptools>=61.0", "numpy", "scipy"]
 build-backend = "setuptools.build_meta"
