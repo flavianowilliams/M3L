@@ -93,8 +93,7 @@ class System(Lattice):
                 at['z'] = at['z']+self.getCcell()*int(at['z']/self.getCcell())
         else:
             logging.critical('Constant lattice must be larger than zero!')
-            logging.info('Job turned out')
-            sys.exit()
+            sys.quit()
 
     def convertUnits(self):
         self.setAcell(self.getAcell()/self.getAconv())
