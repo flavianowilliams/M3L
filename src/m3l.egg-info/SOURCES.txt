@@ -9,5 +9,4 @@ src/m3l/structure.py
 src/m3l.egg-info/PKG-INFO
 src/m3l.egg-info/SOURCES.txt
 src/m3l.egg-info/dependency_links.txt
-src/m3l.egg-info/requires.txt
 src/m3l.egg-info/top_level.txt
