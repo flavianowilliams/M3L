@@ -30,4 +30,9 @@ package structure{
     }
     System --|> Lattice
 }
+package symmetry{
+    class Symm2D{
+        
+    }
+}
 @enduml

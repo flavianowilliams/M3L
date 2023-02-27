@@ -83,7 +83,7 @@ class System(Lattice):
                 p2 = float(p2)
                 p3 = float(p3)
                 p4 = float(p4)
-                self.atoms.append({'id': i, 'atom': p1, 'x': p2, 'y': p3, 'z': p4})
+                self.atoms.append({'id': i, 'atom': p1, 'x': p2, 'y': p3, 'z': p4, 's2': 0.e0})
 
     def setCCP(self):
         if self.getAcell() > 0.0 and self.getBcell() > 0.0 and self.getCcell() > 0.0:

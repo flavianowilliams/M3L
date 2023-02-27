@@ -15,8 +15,8 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/flavianowilliams"
+"Homepage" = "https://github.com/flavianowilliams/M3L"
 
 [build-system]
-requires = ["setuptools>=61.0", "scipy", "build"]
+requires = ["setuptools<60.0", "scipy", "build"]
 build-backend = "setuptools.build_meta"

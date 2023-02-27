@@ -1,0 +1,13 @@
+LICENSE
+README.md
+pyproject.toml
+setup.py
+src/UNKNOWN.egg-info/PKG-INFO
+src/UNKNOWN.egg-info/SOURCES.txt
+src/UNKNOWN.egg-info/dependency_links.txt
+src/UNKNOWN.egg-info/top_level.txt
+src/m3l/__init__.py
+src/m3l/dr_module.f90
+src/m3l/force_field.py
+src/m3l/structure.py
+src/m3l/symmetry.py

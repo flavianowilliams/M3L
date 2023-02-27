@@ -3,9 +3,11 @@ README.md
 pyproject.toml
 setup.py
 src/m3l/__init__.py
-src/m3l/dr_module.f95
+src/m3l/dr_module.f90
 src/m3l/force_field.py
+src/m3l/machine_learning.py
 src/m3l/structure.py
+src/m3l/symmetry.py
 src/m3l.egg-info/PKG-INFO
 src/m3l.egg-info/SOURCES.txt
 src/m3l.egg-info/dependency_links.txt
