@@ -31,19 +31,16 @@ package structure{
     class System{
         -natoms: int
         setXYZ()
-        convertUnits()
         setCCP()
         sefVolume()
         getNAtoms()
     }
-    System --|> Lattice
 }
 package symmetry{
     class Symm2D{
         +sym_coord: float
         +eta_prm: float
         +rs_prm: float
-        convertUnits()
         gFunction()
         setSF()
     }
@@ -58,6 +55,14 @@ package machine_learning{
         setParams()
     }
 }
+package molecular_dynamics{
+    class Structure{
+        convertUnits()        
+    }
+}
 Constant <|-- Lattice
 Constant <|-- Symm2D
+System <|-- Structure
+Symm2D <|-- Structure
+Lattice <|--- System
 @enduml
