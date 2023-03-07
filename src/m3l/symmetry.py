@@ -9,7 +9,6 @@ class Symm2D(Constant):
         self.eta_prm = prm
         self.rs_prm = rs
 
-        self.convertUnits()
         self.gFunction(atoms)
 
     def gFunction(self, atoms):
@@ -33,7 +32,3 @@ class Symm2D(Constant):
             func = 0.e0
 
         return func
-
-    def convertUnits(self):
-        self.eta_prm=self.eta_prm/(1/self.getAconv()**2)
-        self.rs_prm=self.rs_prm/self.getAconv()

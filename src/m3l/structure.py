@@ -89,14 +89,5 @@ class System(Lattice):
             logging.critical('Constant lattice must be larger than zero!')
             sys.quit()
 
-    def convertUnits(self):
-        self.setAcell(self.getAcell()/self.getAconv())
-        self.setBcell(self.getBcell()/self.getAconv())
-        self.setCcell(self.getCcell()/self.getAconv())
-        for at in self.atoms:
-            at['x'] = at['x']/self.getAconv()
-            at['y'] = at['y']/self.getAconv()
-            at['z'] = at['z']/self.getAconv()
-
     def getNatoms(self):
         return self.__natoms
