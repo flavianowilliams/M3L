@@ -1,4 +1,10 @@
 @startuml M3L
+package utils{
+    class Constant{
+        aconv: float
+        getAconv()
+    }
+}
 package structure{
     class Lattice{
         -acell: float
@@ -26,13 +32,32 @@ package structure{
         -natoms: int
         setXYZ()
         convertUnits()
-        getNatoms()
+        setCCP()
+        sefVolume()
+        getNAtoms()
     }
     System --|> Lattice
 }
 package symmetry{
     class Symm2D{
-        
+        +sym_coord: float
+        +eta_prm: float
+        +rs_prm: float
+        convertUnits()
+        gFunction()
+        setSF()
     }
 }
+package machine_learning{
+    class DataSet{
+        +atmax: int
+        +stepmax: int
+        +data_sample: float
+        data_sample()
+        setDS()
+        setParams()
+    }
+}
+Constant <|-- Lattice
+Constant <|-- Symm2D
 @enduml

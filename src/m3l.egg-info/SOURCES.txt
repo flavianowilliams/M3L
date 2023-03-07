@@ -6,6 +6,7 @@ src/m3l/__init__.py
 src/m3l/dr_module.f90
 src/m3l/force_field.py
 src/m3l/machine_learning.py
+src/m3l/molecular_dynamics.py
 src/m3l/structure.py
 src/m3l/symmetry.py
 src/m3l/utils.py

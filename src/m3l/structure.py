@@ -100,10 +100,3 @@ class System(Lattice):
 
     def getNatoms(self):
         return self.__natoms
-
-    def __str__(self):
-        return (
-            '\nCélula unitária ortorrômbica\n\n'
-            +'Volume: {} {}\n\n'.format(self.getVolume()['value']*self.getAconv()**3, self.getVolume()['unit'])
-            +'Total: {} átomos\n'.format(self.getNatoms())
-        )
