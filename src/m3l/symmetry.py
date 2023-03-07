@@ -1,9 +1,10 @@
 from math import exp, sqrt, cos, pi
+from m3l.utils import Constant
 
-class Symm2D():
+class Symm2D(Constant):
 
     def __init__(self, atoms, prm, rs):
-
+    
         self.sym_coord = list()
         self.eta_prm = prm
         self.rs_prm = rs
