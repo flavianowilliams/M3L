@@ -8,19 +8,13 @@ Created on Tue Aug  9 10:07:12 2022
 
 import logging
 import sys
-from scipy import constants as cte
+from m3l.utils import Constant
 
 logging.basicConfig(
     level=logging.WARNING,
     filename="structure.log",
     format="%(asctime)s:%(levelname)s:%(message)s"
     )
-
-class Constant():
-    __aconv = 1.e+10*cte.value('atomic unit of length')
-
-    def getAconv(self):
-        return self.__aconv
 
 class Lattice(Constant):
     def __init__(self, a, b, c):
@@ -83,7 +77,7 @@ class System(Lattice):
                 p2 = float(p2)
                 p3 = float(p3)
                 p4 = float(p4)
-                self.atoms.append({'id': i, 'atom': p1, 'x': p2, 'y': p3, 'z': p4, 's2': 0.e0})
+                self.atoms.append({'id': i, 'atom': p1, 'x': p2, 'y': p3, 'z': p4, 'energy': 0.e0, 's2': 0.e0})
 
     def setCCP(self):
         if self.getAcell() > 0.0 and self.getBcell() > 0.0 and self.getCcell() > 0.0:
