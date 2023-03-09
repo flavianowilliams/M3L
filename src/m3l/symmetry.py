@@ -3,19 +3,19 @@ from m3l.utils import Constant
 
 class Symm2D(Constant):
 
-    def __init__(self, atoms, prm, rs):
-    
+    def __init__(self):
+
+        super().__init__()
+
         self.sym_coord = list()
-        self.eta_prm = prm
-        self.rs_prm = rs
 
-        self.gFunction(atoms)
+#        self.gFunction()
 
-    def gFunction(self, atoms):
+    def gFunction(self):
         
-        for atm in atoms:
+        for atm in self.atoms:
             sum = 0.e0
-            for atom in atoms:
+            for atom in self.atoms:
                 if atom['id'] > atm['id']:
                     dr = sqrt((atm['x']-atom['x'])**2+(atm['y']-atom['y'])**2+(atm['z']-atom['z'])**2)
                     sum += exp(-self.eta_prm*(dr-self.rs_prm)**2)*self.setSF(dr)

@@ -18,6 +18,9 @@ logging.basicConfig(
 
 class Lattice(Constant):
     def __init__(self, a, b, c):
+
+        super().__init__()
+
         self.__acell = a
         self.__bcell = b
         self.__ccell = c
@@ -58,6 +61,7 @@ class Lattice(Constant):
 class System(Lattice):
 
     def __init__(self, a, b, c, filename):
+
         self.setAcell(a)
         self.setBcell(b)
         self.setCcell(c)

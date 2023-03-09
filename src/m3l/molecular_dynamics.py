@@ -1,22 +1,23 @@
 from m3l.structure import System
 from m3l.symmetry import Symm2D
 
-class Structure(Symm2D,System):
+class Structure(System):
 
-    def __init__(self, a, b, c, filename, prm, rs):
+    def __init__(self, a, b, c, filename):
 
-        self.setAcell(a)
-        self.setBcell(b)
-        self.setCcell(c)
-        self.setXYZ(filename)
-        self.eta_prm = prm
-        self.rs_prm = rs
+#        self.setAcell(a)
+#        self.setBcell(b)
+#        self.setCcell(c)
+#        self.setXYZ(filename)
+#        self.eta_prm = prm
+#        self.rs_prm = rs
+
+        System(self).__init__(a, b, c, filename)
 
         self.convertUnits()
 
-        System.__init__(self, a, b, c, filename)
-        Symm2D.__init__(self, self.atoms, prm, rs)
-
+#        Symm2D(Structure, self).__init__(self.atoms, prm, rs)
+  
     def convertUnits(self):
 
         self.setAcell(self.getAcell()/self.getAconv())

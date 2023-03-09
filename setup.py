@@ -23,5 +23,5 @@ if __name__ == "__main__":
         description = "Machine Learning and Molecular Modelling",
         author = "Flaviano Williams Fernandes",
         author_email = "flaviano.fernandes@ifpr.edu.br",
-        ext_modules=[ext1]
+        ext_modules=[]
     )
