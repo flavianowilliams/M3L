@@ -57,7 +57,7 @@ coverage.xml
 
 # database:
 *.log
-dbquaest.sqlite3
+*.sqlite3
 
 # Flask stuff:
 instance/
