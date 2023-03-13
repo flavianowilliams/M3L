@@ -1,28 +1,25 @@
 from math import exp, sqrt, cos, pi
-from m3l.utils import Constant
 
-class Symm2D(Constant):
+class Symm2D():
 
-    def __init__(self):
+    def __init__(self, atoms, atm, eta_prm, rs_prm):
 
-        super().__init__()
+        self.atoms = atoms
+        self.eta_prm = eta_prm
+        self.rs_prm = rs_prm
+        self.atm = atm
 
-        self.sym_coord = list()
-
-#        self.gFunction()
+        self.gFunction()
 
     def gFunction(self):
         
-        for atm in self.atoms:
-            sum = 0.e0
-            for atom in self.atoms:
-                if atom['id'] > atm['id']:
-                    dr = sqrt((atm['x']-atom['x'])**2+(atm['y']-atom['y'])**2+(atm['z']-atom['z'])**2)
-                    sum += exp(-self.eta_prm*(dr-self.rs_prm)**2)*self.setSF(dr)
-            atm['s2'] = sum
-            self.sym_coord.append(atm)
-
-        return self.sym_coord
+        sum = 0.e0
+        for atom in self.atoms:
+            if atom != self.atm:
+                dr = sqrt((self.atm['x']-atom['x'])**2+(self.atm['y']-atom['y'])**2+(self.atm['z']-atom['z'])**2)
+#                    sum += exp(-self.eta_prm*(dr-self.rs_prm)**2)*self.setSF(dr)
+#            atm['s2'] = sum
+        self.atm['s2'] = dr
 
     def setSF(self, dr):
 

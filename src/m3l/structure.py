@@ -9,6 +9,7 @@ Created on Tue Aug  9 10:07:12 2022
 import logging
 import sys
 from m3l.utils import Constant
+from m3l.symmetry import Symm2D
 
 logging.basicConfig(
     level=logging.WARNING,
@@ -60,14 +61,17 @@ class Lattice(Constant):
 
 class System(Lattice):
 
-    def __init__(self, a, b, c, filename):
+    def __init__(self, a, b, c, filename, eta_prm, rs_prm):
 
         self.setAcell(a)
         self.setBcell(b)
         self.setCcell(c)
+        self.eta_prm = eta_prm
+        self.rs_prm = rs_prm
         self.setXYZ(filename)
         self.convertUnits()
         self.setCCP()
+        self.setSym()
         self.setVolume()
 
     def setXYZ(self, filename):
@@ -82,6 +86,10 @@ class System(Lattice):
                 p3 = float(p3)
                 p4 = float(p4)
                 self.atoms.append({'id': i, 'atom': p1, 'x': p2, 'y': p3, 'z': p4, 'energy': 0.e0, 's2': 0.e0})
+
+    def setSym(self):
+        for atom in self.atoms:
+            atom = Symm2D(self.atoms, atom, self.eta_prm, self.rs_prm)
 
     def setCCP(self):
         if self.getAcell() > 0.0 and self.getBcell() > 0.0 and self.getCcell() > 0.0:
