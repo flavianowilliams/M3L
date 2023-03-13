@@ -13,6 +13,7 @@ ext1 = Extension(name='m3l.dr_module',
                  )
 
 if __name__ == "__main__":
+
     setup(
     #    install_requires=install_requires,
         name = "m3l",
