@@ -1,7 +1,20 @@
 from m3l.structure import System
-from m3l.symmetry import Symm2D
 
 class Structure(System):
+
+    def __init__(self, a, b, c, filename, eta_prm, rs_prm):
+
+        self.setAcell(a)
+        self.setBcell(b)
+        self.setCcell(c)
+        self.eta_prm = eta_prm
+        self.rs_prm = rs_prm
+        self.setXYZ(filename)
+        self.setCCP()
+
+        self.convertUnits()
+
+        self.setVolume()
 
     def convertUnits(self):
 

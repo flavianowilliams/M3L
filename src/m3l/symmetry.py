@@ -17,9 +17,8 @@ class Symm2D():
         for atom in self.atoms:
             if atom != self.atm:
                 dr = sqrt((self.atm['x']-atom['x'])**2+(self.atm['y']-atom['y'])**2+(self.atm['z']-atom['z'])**2)
-#                    sum += exp(-self.eta_prm*(dr-self.rs_prm)**2)*self.setSF(dr)
-#            atm['s2'] = sum
-        self.atm['s2'] = dr
+                sum += exp(-self.eta_prm*(dr-self.rs_prm)**2)*self.setSF(dr)
+        self.atm['s2'] = sum
 
     def setSF(self, dr):
 

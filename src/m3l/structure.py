@@ -63,15 +63,7 @@ class System(Lattice):
 
     def __init__(self, a, b, c, filename, eta_prm, rs_prm):
 
-        self.setAcell(a)
-        self.setBcell(b)
-        self.setCcell(c)
-        self.eta_prm = eta_prm
-        self.rs_prm = rs_prm
-        self.setXYZ(filename)
-        self.setCCP()
         self.setSym()
-        self.setVolume()
 
     def setXYZ(self, filename):
         with open(filename, 'r') as xyz_file:
