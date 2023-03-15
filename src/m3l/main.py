@@ -1,3 +1,4 @@
+from m3l.machine_learning import DataSet
 from m3l.structure import System
 
 class Structure(System):
@@ -31,7 +32,13 @@ class Structure(System):
 
     def __str__(self):
         return (
-            '\nCélula unitária ortorrômbica\n\n'
-            +'Volume: {} {}\n\n'.format(self.getVolume()['value']*self.getAconv()**3, self.getVolume()['unit'])
-            +'Total: {} átomos\n'.format(self.getNatoms())
+            f"""Célula unitária ortorrômbica\nVolume: {self.getVolume()['value']*self.getAconv()**3} {self.getVolume()['unit']}\nTotal: {self.getNatoms()} átomos.
+            """
+        )
+
+class Training(DataSet):
+
+    def __str__(self):
+        return(
+            f"Total steps: {self.stepmax}\nTotal of atoms: {self.atmax}"
         )
