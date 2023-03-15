@@ -69,7 +69,6 @@ class System(Lattice):
         self.eta_prm = eta_prm
         self.rs_prm = rs_prm
         self.setXYZ(filename)
-        self.convertUnits()
         self.setCCP()
         self.setSym()
         self.setVolume()

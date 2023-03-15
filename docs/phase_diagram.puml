@@ -30,15 +30,19 @@ package structure{
     }
     class System{
         -natoms: int
+        eta_prm: float
+        rs_prm: float
         setXYZ()
         setCCP()
-        sefVolume()
+        setVolume()
+        setSym()
         getNAtoms()
     }
 }
 package symmetry{
     class Symm2D{
-        +sym_coord: float
+        +atoms: int
+        +atm: int
         +eta_prm: float
         +rs_prm: float
         gFunction()
@@ -63,6 +67,6 @@ package molecular_dynamics{
 Constant <|-- Lattice
 Constant <|-- Symm2D
 System <|-- Structure
-Symm2D <|-- System
+System o-right- Symm2D
 Lattice <|--- System
 @enduml

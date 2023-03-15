@@ -3,21 +3,6 @@ from m3l.symmetry import Symm2D
 
 class Structure(System):
 
-#    def __init__(self, a, b, c, filename):
-#
-#        self.setAcell(a)
-#        self.setBcell(b)
-#        self.setCcell(c)
-#        self.setXYZ(filename)
-#        self.eta_prm = prm
-#        self.rs_prm = rs
-
-#        System(self).__init__(a, b, c, filename)
-
-#    self.convertUnits()
-
-#        Symm2D(Structure, self).__init__(self.atoms, prm, rs)
-#   
     def convertUnits(self):
 
         self.setAcell(self.getAcell()/self.getAconv())
