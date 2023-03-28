@@ -10,6 +10,7 @@ class DataSet(Constant):
 
         self.eta_prm = eta_prm
         self.rs_prm = rs_prm
+
         self.atmax = 0
         self.stepmax = 0
         self.atoms = list()
@@ -17,9 +18,9 @@ class DataSet(Constant):
         self.setParams()
         self.setSym()
 
-        self.convertUnits()
-
     def setDS(self):
+
+        self.atoms = list()
 
         with open('ds.csv', 'r') as file:
             dataset = csv.DictReader(file)

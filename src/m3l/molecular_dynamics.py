@@ -1,10 +1,15 @@
 from m3l.structure import Lattice
+from m3l.symmetry import Symm2D
+import logging
+import sys
 
 class System(Lattice):
 
     def __init__(self, a, b, c, filename, eta_prm, rs_prm):
 
         self.setSym()
+        self.eta_prm = eta_prm
+        self.rs_prm = rs_prm
 
     def setXYZ(self, filename):
         with open(filename, 'r') as xyz_file:
@@ -31,7 +36,7 @@ class System(Lattice):
                 at['z'] = at['z']+self.getCcell()*int(at['z']/self.getCcell())
         else:
             logging.critical('Constant lattice must be larger than zero!')
-            sys.quit()
+            sys.exit()
 
     def getNatoms(self):
         return self.__natoms
