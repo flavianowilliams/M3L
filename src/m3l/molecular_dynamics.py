@@ -7,16 +7,19 @@ class System(Lattice):
 
     def __init__(self, a, b, c, filename, eta_prm, rs_prm):
 
+        super().__init__(a, b, c)
+
         self.setSym()
         self.eta_prm = eta_prm
         self.rs_prm = rs_prm
+        self.filename = filename
 
-    def setXYZ(self, filename):
-        with open(filename, 'r') as xyz_file:
+    def setXYZ(self):
+        with open(self.filename, 'r') as xyz_file:
             self.__natoms = xyz_file.readline()
             self.__natoms = int(self.__natoms)
             xyz_file.readline()
-            self.atoms = list()
+#            self.atoms = list()
             for i in range(self.__natoms):
                 p1, p2, p3, p4 = xyz_file.readline().split(maxsplit=3)
                 p2 = float(p2)

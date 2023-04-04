@@ -15,10 +15,15 @@ logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(message)s"
     )
 
-class Lattice(Constant):
-    def __init__(self, a, b, c):
+class Atoms(Constant):
 
-        super().__init__()
+    def __init__(self):
+
+        self.atoms = list()
+
+class Lattice(Atoms):
+
+    def __init__(self, a, b, c):
 
         self.__acell = a
         self.__bcell = b
@@ -45,5 +50,6 @@ class Lattice(Constant):
     def setVolume(self):
         self.__volume = {'value': self.__acell*self.__bcell*self.__ccell, 'unit': 'A³'}
 
-    def getVolume(self):
+    def getVolume(self):      
         return self.__volume
+

@@ -1,8 +1,8 @@
 import csv
 from m3l.symmetry import Symm2D
-from m3l.utils import Constant
+from m3l.structure import Atoms 
 
-class DataSet(Constant):
+class DataSet(Atoms):
 
     def __init__(self, eta_prm, rs_prm):
 
@@ -13,7 +13,7 @@ class DataSet(Constant):
 
         self.atmax = 0
         self.stepmax = 0
-        self.atoms = list()
+#        self.atoms = list()
         self.setDS()
         self.setParams()
         self.setSym()

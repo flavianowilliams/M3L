@@ -5,12 +5,14 @@ class Structure(System):
 
     def __init__(self, a, b, c, filename, eta_prm, rs_prm):
 
+        super().__init__(a, b, c, filename, eta_prm, rs_prm)
+
         self.setAcell(a)
         self.setBcell(b)
         self.setCcell(c)
         self.eta_prm = eta_prm
         self.rs_prm = rs_prm
-        self.setXYZ(filename)
+        self.setXYZ()
         self.setCCP()
 
         self.convertUnits()
