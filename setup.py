@@ -1,5 +1,5 @@
 from setuptools import find_packages
-from numpy.distutils.core import setup, Extension
+from numpy.distutils.core import setup#, Extension
 #from pathlib import Path
 
 #BASE_DIR = Path(__file__).resolve().parent
@@ -7,10 +7,10 @@ from numpy.distutils.core import setup, Extension
 #with open('requirements.txt') as f:
 #    install_requires = f.read().splitlines()
 
-ext1 = Extension(name='m3l.dr_module',
-                 sources=['src/m3l/dr_module.f90'],
-                 f2py_options=['--quiet'],
-                 )
+#ext1 = Extension(name='m3l.dr_module',
+#                 sources=['src/m3l/dr_module.f90'],
+#                 f2py_options=['--quiet'],
+#                 )
 
 if __name__ == "__main__":
 

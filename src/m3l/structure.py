@@ -17,17 +17,21 @@ logging.basicConfig(
 
 class Atoms(Constant):
 
-    def __init__(self):
+    atoms = list()
 
-        self.atoms = list()
+    def __init__(self) -> None:
+    
+        super().__init__()
 
 class Lattice(Atoms):
 
     def __init__(self, a, b, c):
 
+        super().__init__()
+
         self.__acell = a
         self.__bcell = b
-        self.__ccell = c
+        self.__ccell = c 
 
     def setAcell(self, a):
         self.__acell = a
