@@ -3,7 +3,7 @@
 """
 Created on Tue Aug  9 10:07:12 2022
 
-@author: flaviano
+@author: flaviano.fernandes@ifpr.edu.br
 """
 
 import logging
@@ -22,6 +22,15 @@ class Atoms(Constant):
     def __init__(self) -> None:
     
         super().__init__()
+
+    def filterAttr(self, attr1, attr2, value):
+
+        var = list()
+        for atom in self.atoms:
+            if atom[attr2] == value:
+                var.append(atom[attr1])
+
+        return var
 
 class Lattice(Atoms):
 
