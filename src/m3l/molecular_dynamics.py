@@ -17,7 +17,7 @@ class Integration(System):
     def nve(self, step):
 
         for atom in self.atoms:
-            atom['x'] = atom['x']+0.5
+            atom['x'] = atom['x']+0.2*self.acell
             atom['y'] = atom['y']+0.0
             atom['z'] = atom['z']+0.0
             atom['step'] = step
@@ -34,6 +34,7 @@ class MolecularDynamics(Integration):
         self.setNAtoms()
         self.convertUnits()
         self.setVolume()
+        self.ccp()
 
         return
 
@@ -65,6 +66,7 @@ class MolecularDynamics(Integration):
         self.nstep = nstep
 
         for step in range(1,self.nstep+1):
+            self.ccp()
             self.nve(step)
 
         return
