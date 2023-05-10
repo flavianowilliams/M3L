@@ -45,3 +45,15 @@ class System(Atom):
     def setVolume(self):
         self.volume = {'value': self.acell*self.bcell*self.ccell, 'unit': 'A³'}
 
+        return self.volume
+
+    def ccp(self):
+        if self.acell > 0.0 and self.bcell > 0.0 and self.ccell > 0.0:
+            for at in self.atoms:
+                at['x'] = at['x']+self.acell*int(at['x']/self.acell)
+                at['y'] = at['y']+self.bcell*int(at['y']/self.bcell)
+                at['z'] = at['z']+self.ccell*int(at['z']/self.ccell)
+#        else:
+#            logging.critical('Constant lattice must be larger than zero!')
+#            sys.exit()
+
