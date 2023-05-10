@@ -6,10 +6,15 @@ package utils{
   }
 package molecular_dynamics{
     class MolecularDynamics{
+        nsteps: integer
+        frames: list
+        timestep: float
         convertUnits()
         running()
+        setFrame()
     }
     class Integration{
+        nve()
     }
     class ForceField{
   }
@@ -25,6 +30,7 @@ package structure{
       pressure: float
       setNatom()
       setVolume()
+      ccp()
     }
     class Atom{
         atoms: list

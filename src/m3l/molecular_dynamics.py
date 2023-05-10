@@ -14,17 +14,18 @@ class Integration(System):
 
 #        super().__init__(acell, bcell, ccell, filename)
 
-    def nve(self, step):
+    def nve(self):
 
         for atom in self.atoms:
             atom['x'] = atom['x']+0.2*self.acell
             atom['y'] = atom['y']+0.0
             atom['z'] = atom['z']+0.0
-            atom['step'] = step
 
         return
 
 class MolecularDynamics(Integration):
+
+    frames = []
 
     def __init__(self, acell, bcell, ccell, filename):
 
@@ -63,13 +64,19 @@ class MolecularDynamics(Integration):
     def running(self, timestep, nstep):
 
         self.timestep = timestep
-        self.nstep = nstep
+        self.nsteps = nstep
 
-        for step in range(1,self.nstep+1):
+        for step in range(1,nstep+1):
             self.ccp()
-            self.nve(step)
+            self.nve()
+            self.setFrame(step)
 
         return
+
+    def setFrame(self, step):
+
+        for at in self.atoms:
+            self.frames.append({'step': step, 'id': at['id'], 'x': at['x'], 'y': at['y'], 'z': at['z'], 'energy': 0.e0, 's2': 0.e0})
 
     def __str__(self):
         return (f"""---Molecular dynamics module---
