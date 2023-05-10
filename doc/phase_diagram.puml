@@ -10,27 +10,25 @@ package molecular_dynamics{
         running()
     }
     class Integration{
-        nve()
     }
     class ForceField{
   }
+}
 package structure{
     class System{
       natom: integer
-      step: integer
       acell: float
       bcell: float
       ccell: float
       volume: float
       temperature: float
       pressure: float
+      setNatom()
       setVolume()
-      setAtoms()
-      setNAtoms()
     }
     class Atom{
         atoms: list
-    }
+        setAtom()
   }
 }
 Conversion <|-- Atom
