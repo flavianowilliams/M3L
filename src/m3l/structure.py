@@ -1,68 +1,47 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Aug  9 10:07:12 2022
+from m3l.utils import Conversion
 
-@author: flaviano.fernandes@ifpr.edu.br
-"""
+class Atom(Conversion):
 
-import logging
-from m3l.utils import Constant
+    atoms = []
 
-logging.basicConfig(
-    level=logging.WARNING,
-    filename="structure.log",
-    format="%(asctime)s:%(levelname)s:%(message)s"
-    )
-
-class Atoms(Constant):
-
-    atoms = list()
-
-    def __init__(self) -> None:
-    
-        super().__init__()
-
-    def filterAttr(self, attr1, attr2, value):
-
-        var = list()
-        for atom in self.atoms:
-            if atom[attr2] == value:
-                var.append(atom[attr1])
-
-        return var
-
-class Lattice(Atoms):
-
-    def __init__(self, a, b, c):
+    def __init__(self):
 
         super().__init__()
 
-        self.__acell = a
-        self.__bcell = b
-        self.__ccell = c 
+class System(Atom):
 
-    def setAcell(self, a):
-        self.__acell = a
+    temperature = 0.0
+    pressure = 0.0
+    step = 0
 
-    def getAcell(self):
-        return self.__acell
+    def __init__(self, acell, bcell, ccell, filename):
 
-    def setBcell(self, b):
-        self.__bcell = b
+        self.acell = acell
+        self.bcell = bcell
+        self.ccell = ccell
+        self.filename = filename
 
-    def getBcell(self):
-        return self.__bcell
+    def setAtoms(self):
+        with open(self.filename, 'r') as xyz_file:
+            natoms = xyz_file.readline()
+            natoms = int(natoms)
+            xyz_file.readline()
+            self.atoms = []
+            for i in range(natoms):
+                p1, p2, p3, p4 = xyz_file.readline().split(maxsplit=3)
+                p2 = float(p2)
+                p3 = float(p3)
+                p4 = float(p4)
+                self.atoms.append({'step': self.step, 'id': i, 'atom': p1, 'x': p2, 'y': p3, 'z': p4, 'energy': 0.e0, 's2': 0.e0})
 
-    def setCcell(self, c):
-        self.__ccell = c
+        return self.atoms
 
-    def getCcell(self):
-        return self.__ccell
+    def setNAtoms(self):
+
+        self.natoms = len(self.atoms)
+
+        return self.natoms
 
     def setVolume(self):
-        self.__volume = {'value': self.__acell*self.__bcell*self.__ccell, 'unit': 'A³'}
-
-    def getVolume(self):      
-        return self.__volume
+        self.volume = {'value': self.acell*self.bcell*self.ccell, 'unit': 'A³'}
 

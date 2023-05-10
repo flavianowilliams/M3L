@@ -17,7 +17,7 @@ if __name__ == "__main__":
     setup(
     #    install_requires=install_requires,
         name = "m3l",
-        version = "2022.10.dev0",
+        version = "2023.05.dev0",
         url = "https://github.com/flavianowilliams/M3L",
         package_dir={"":"src"},
         packages=find_packages(where="src"),

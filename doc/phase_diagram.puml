@@ -1,72 +1,41 @@
 @startuml M3L
 package utils{
-    class Constant{
+    class Conversion{
         aconv: float
-        getAconv()
     }
-}
-package structure{
-    class Lattice{
-        -acell: float
-        -bcell: float
-        -ccell: float
-        -a1: float
-        -a2: float
-        -a3: float
-        -b1: float
-        -b2: float
-        -b3: float
-        -c1: float
-        -c2: float
-        -c3: float
-        setVolume()
-        getVolume()
-        setAcell()
-        getAcell()
-        setBcell()
-        getBcell()
-        setCcell()
-        getCcell()
-    }
-    class System{
-        -natoms: int
-        eta_prm: float
-        rs_prm: float
-        setXYZ()
-        setCCP()
-        setVolume()
-        setSym()
-        getNAtoms()
-    }
-}
-package symmetry{
-    class Symm2D{
-        +atoms: int
-        +atm: int
-        +eta_prm: float
-        +rs_prm: float
-        gFunction()
-        setSF()
-    }
-}
-package machine_learning{
-    class DataSet{
-        +atmax: int
-        +stepmax: int
-        +data_sample: float
-        data_sample()
-        setDS()
-        setParams()
-    }
-}
+  }
 package molecular_dynamics{
-    class Structure{
-        convertUnits()    
+    class MolecularDynamics{
+        convertUnits()
+        running()
     }
+    class Integration{
+        nve()
+    }
+    class ForceField{
+  }
+package structure{
+    class System{
+      natom: integer
+      step: integer
+      acell: float
+      bcell: float
+      ccell: float
+      volume: float
+      temperature: float
+      pressure: float
+      setVolume()
+      setAtoms()
+      setNAtoms()
+    }
+    class Atom{
+        atoms: list
+    }
+  }
 }
-Constant <|-- Lattice
-Constant <|-- Symm2D
-System <|-- Structure
-System o-right- Symm2D
-Lattice <|--- System
+Conversion <|-- Atom
+Integration o-- ForceField
+MolecularDynamics <|-- Integration
+System <|-- Integration
+Atom <|-- System
 @enduml
