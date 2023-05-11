@@ -2,5 +2,4 @@ from scipy import constants as cte
 
 class Conversion():
 
-    aconv = cte.value('atomic unit of length')
-
+    aconv = 1.0e10*cte.value('atomic unit of length')

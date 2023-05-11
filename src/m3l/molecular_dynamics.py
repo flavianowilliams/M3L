@@ -69,7 +69,6 @@ class MolecularDynamics(Integration):
         for step in range(1,nstep+1):
             self.ccp()
             self.nve()
-            self.convertUnits()
             self.setFrame(step)
 
         return
