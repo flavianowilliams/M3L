@@ -49,6 +49,7 @@ class MolecularDynamics(Integration):
             at['x'] = at['x']*self.aconv
             at['y'] = at['y']*self.aconv
             at['z'] = at['z']*self.aconv
+            at['mass'] = at['mass']*self.mconv
 
     def convertUnits(self):
 
@@ -60,6 +61,7 @@ class MolecularDynamics(Integration):
             at['x'] = at['x']/self.aconv
             at['y'] = at['y']/self.aconv
             at['z'] = at['z']/self.aconv
+            at['mass'] = at['mass']/self.mconv
 
     def running(self, timestep, nstep):
 
@@ -76,7 +78,7 @@ class MolecularDynamics(Integration):
     def setFrame(self, step):
 
         for at in self.atoms:
-            self.frames.append({'step': step, 'id': at['id'], 'x': at['x'], 'y': at['y'], 'z': at['z'], 'energy': 0.e0, 's2': 0.e0})
+            self.frames.append({'step': step, 'id': at['id'], 'mass': 1.0, 'x': at['x'], 'y': at['y'], 'z': at['z'], 'energy': 0.e0, 's2': 0.e0})
 
     def __str__(self):
         return (f"""---Molecular dynamics module---
