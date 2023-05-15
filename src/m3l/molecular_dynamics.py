@@ -46,7 +46,6 @@ class MolecularDynamics(Integration):
 
         self.setAtoms()
         self.setNAtoms()
-        self.convertUnits()
         self.setVolume()
         self.ccp()
 
@@ -57,6 +56,7 @@ class MolecularDynamics(Integration):
         self.acell = self.acell*self.aconv
         self.bcell = self.bcell*self.aconv
         self.ccell = self.ccell*self.aconv
+        self.timestep = self.timestep*self.timeconv
 
         for at in self.atoms:
             at['x'] = at['x']*self.aconv
@@ -69,6 +69,7 @@ class MolecularDynamics(Integration):
         self.acell = self.acell/self.aconv
         self.bcell = self.bcell/self.aconv
         self.ccell = self.ccell/self.aconv
+        self.timestep = self.timestep/self.timeconv
 
         for at in self.atoms:
             at['x'] = at['x']/self.aconv
@@ -85,8 +86,11 @@ class MolecularDynamics(Integration):
         self.setVelocity()
 
         for step in range(1,nstep+1):
+            self.convertUnits()
             self.ccp()
             self.nve()
+            self.setTemperature()
+            self.convertUnitsInv()
             self.setFrame(step)
 
         return
@@ -94,7 +98,17 @@ class MolecularDynamics(Integration):
     def setFrame(self, step):
 
         for at in self.atoms:
-            self.frames.append({'step': step, 'id': at['id'], 'mass': 1.0, 'x': at['x'], 'y': at['y'], 'z': at['z'], 'energy': 0.e0, 's2': 0.e0})
+            self.frames.append({
+                'step': step,
+                'id': at['id'],
+                'mass': 1.0,
+                'x': at['x'],
+                'y': at['y'],
+                'z': at['z'],
+                'energy': 0.e0,
+                'temperature': self.temperature,
+                's2': 0.e0
+                })
 
     def setVelocity(self):
 
