@@ -103,6 +103,15 @@ class MolecularDynamics(Integration):
             at['vy'] = sqrt(self.kb*self.temperature_input/at['mass'])
             at['vz'] = sqrt(self.kb*self.temperature_input/at['mass'])
 
+    def setTemperature(self):
+
+        nfree = 3*(self.natoms-1)
+
+        soma = 0.0
+        for atom in self.atoms:
+            soma += atom['mass']*(atom['vx']**2+atom['vy']**2+atom['vz']**2)
+
+        self.temperature = soma/(self.kb*nfree)
 
     def __str__(self):
         return (f"""---Molecular dynamics module---
