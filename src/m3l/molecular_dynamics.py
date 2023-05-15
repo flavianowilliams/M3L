@@ -1,3 +1,4 @@
+from numpy import sqrt
 from m3l.structure import System 
 
 class ForceField():
@@ -63,10 +64,11 @@ class MolecularDynamics(Integration):
             at['z'] = at['z']/self.aconv
             at['mass'] = at['mass']/self.mconv
 
-    def running(self, timestep, nstep):
+    def running(self, timestep, nstep, temperature):
 
         self.timestep = timestep
         self.nsteps = nstep
+        self.temperature_input = temperature
 
         for step in range(1,nstep+1):
             self.ccp()
@@ -79,6 +81,11 @@ class MolecularDynamics(Integration):
 
         for at in self.atoms:
             self.frames.append({'step': step, 'id': at['id'], 'mass': 1.0, 'x': at['x'], 'y': at['y'], 'z': at['z'], 'energy': 0.e0, 's2': 0.e0})
+
+    def setVelocity(self):
+
+        for at in self.atoms:
+            at['vx'] = sqrt(self.kb*self.temperature_input/at[['mass']])
 
     def __str__(self):
         return (f"""---Molecular dynamics module---
