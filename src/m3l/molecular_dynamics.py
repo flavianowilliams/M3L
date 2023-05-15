@@ -15,12 +15,24 @@ class Integration(System):
 
 #        super().__init__(acell, bcell, ccell, filename)
 
+    timestep = 0.0
+
     def nve(self):
 
         for atom in self.atoms:
-            atom['x'] = atom['x']+0.2*self.acell
-            atom['y'] = atom['y']+0.0
-            atom['z'] = atom['z']+0.0
+            atom['vx'] = atom['vx']+0.5*self.timestep/atom['mass']
+            atom['vy'] = atom['vy']+0.5*self.timestep/atom['mass']
+            atom['vz'] = atom['vz']+0.5*self.timestep/atom['mass']
+            atom['x'] = atom['x']+self.timestep*atom['vx']
+            atom['y'] = atom['y']+self.timestep*atom['vy']
+            atom['z'] = atom['z']+self.timestep*atom['vz']
+
+        self.ccp()
+
+        for atom in self.atoms:
+            atom['vx'] = atom['vx']+0.5*self.timestep/atom['mass']
+            atom['vy'] = atom['vy']+0.5*self.timestep/atom['mass']
+            atom['vz'] = atom['vz']+0.5*self.timestep/atom['mass']
 
         return
 
@@ -70,6 +82,8 @@ class MolecularDynamics(Integration):
         self.nsteps = nstep
         self.temperature_input = temperature
 
+        self.setVelocity()
+
         for step in range(1,nstep+1):
             self.ccp()
             self.nve()
@@ -85,7 +99,10 @@ class MolecularDynamics(Integration):
     def setVelocity(self):
 
         for at in self.atoms:
-            at['vx'] = sqrt(self.kb*self.temperature_input/at[['mass']])
+            at['vx'] = sqrt(self.kb*self.temperature_input/at['mass'])
+            at['vy'] = sqrt(self.kb*self.temperature_input/at['mass'])
+            at['vz'] = sqrt(self.kb*self.temperature_input/at['mass'])
+
 
     def __str__(self):
         return (f"""---Molecular dynamics module---
