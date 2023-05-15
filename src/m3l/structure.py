@@ -37,7 +37,19 @@ class System(Atom):
                 p3 = float(p3)
                 p4 = float(p4)
                 mass = self.setMass(p1)
-                self.atoms.append({'id': i, 'atom': p1, 'mass': mass, 'x': p2, 'y': p3, 'z': p4, 'energy': 0.e0, 's2': 0.e0})
+                self.atoms.append({
+                    'id': i,
+                    'atom': p1,
+                    'mass': mass,
+                    'x': p2,
+                    'y': p3,
+                    'z': p4,
+                    'vx': 0.0,
+                    'vy': 0.0,
+                    'vz': 0.0,
+                    'energy': 0.e0,
+                    's2': 0.e0
+                    })
 
         return self.atoms
 
