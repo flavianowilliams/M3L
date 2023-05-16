@@ -5,9 +5,28 @@ class ForceField():
 
     def __init__(self):
 
-        super().__init__()
+        self.k_cte = 1.25
+        self.r_cte = 1.88
 
-        return
+    def twoPaticle(self, atoms):
+
+        epot = 0.0
+        for i in range(len(atoms)):
+            for j in range(i+1,len(atoms)):
+                x = atoms[j]['x']-atoms[i]['x']
+                y = atoms[j]['y']-atoms[i]['y']
+                z = atoms[j]['z']-atoms[i]['z']
+                dr = sqrt(x**2+y**2+z**2)
+                epot += 0.5*self.k_cte*(dr-self.r_cte)**2
+                fr = self.k_cte*(dr-self.r_cte)/dr
+                atoms[i]['fx']+=fr*x
+                atoms[i]['fy']+=fr*y
+                atoms[i]['fz']+=fr*z
+                atoms[j]['fx']+=-fr*x
+                atoms[j]['fy']+=-fr*y
+                atoms[j]['fz']+=-fr*z
+
+        return atoms
 
 class Integration(System):
 
@@ -20,9 +39,9 @@ class Integration(System):
     def nve(self):
 
         for atom in self.atoms:
-            atom['vx'] = atom['vx']+0.5*self.timestep/atom['mass']
-            atom['vy'] = atom['vy']+0.5*self.timestep/atom['mass']
-            atom['vz'] = atom['vz']+0.5*self.timestep/atom['mass']
+            atom['vx'] = atom['vx']+0.5*self.timestep*atom['fx']/atom['mass']
+            atom['vy'] = atom['vy']+0.5*self.timestep*atom['fy']/atom['mass']
+            atom['vz'] = atom['vz']+0.5*self.timestep*atom['fz']/atom['mass']
             atom['x'] = atom['x']+self.timestep*atom['vx']
             atom['y'] = atom['y']+self.timestep*atom['vy']
             atom['z'] = atom['z']+self.timestep*atom['vz']
@@ -30,9 +49,9 @@ class Integration(System):
         self.ccp()
 
         for atom in self.atoms:
-            atom['vx'] = atom['vx']+0.5*self.timestep/atom['mass']
-            atom['vy'] = atom['vy']+0.5*self.timestep/atom['mass']
-            atom['vz'] = atom['vz']+0.5*self.timestep/atom['mass']
+            atom['vx'] = atom['vx']+0.5*self.timestep*atom['fx']/atom['mass']
+            atom['vy'] = atom['vy']+0.5*self.timestep*atom['fy']/atom['mass']
+            atom['vz'] = atom['vz']+0.5*self.timestep*atom['fz']/atom['mass']
 
         return
 
@@ -91,6 +110,7 @@ class MolecularDynamics(Integration):
 
         for step in range(1,nstep+1):
             self.ccp()
+            self.atoms = ForceField().twoPaticle(self.atoms)
             self.nve()
             self.setKineticEnergy()
             self.setTemperature()

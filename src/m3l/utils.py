@@ -8,7 +8,7 @@ class Conversion():
     A0 = cte.value('atomic unit of length')
     HARTREE = cte.value('atomic unit of energy')
     ELECTRON_MASS = cte.value('atomic unit of mass')
-    PERIODO_BOHR = cte.value('atomic unit of time')
+    PERIOD_BOHR = cte.value('atomic unit of time')
 
     # Conversion from SI to input units
     ACONV = 1.0e10                   # metre => angstrom
@@ -20,7 +20,7 @@ class Conversion():
     ACONV = ACONV*A0                 # angstrom => a0
     ECONV = ECONV*HARTREE            # kcal/mol => Hartree
     MCONV = MCONV*ELECTRON_MASS      # molar mass => amu
-    TIMECONV = TIMECONV*PERIODO_BOHR # picosecond => electron time revolution
+    TIMECONV = TIMECONV*PERIOD_BOHR # picosecond => electron time revolution
 
     # Other conversion
     TEMPCONV = HARTREE/KB

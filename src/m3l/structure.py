@@ -47,6 +47,9 @@ class System(Atom):
                     'vx': 0.0,
                     'vy': 0.0,
                     'vz': 0.0,
+                    'fx': 0.0,
+                    'fy': 0.0,
+                    'fz': 0.0,
                     'energy': 0.e0,
                     's2': 0.e0
                     })
