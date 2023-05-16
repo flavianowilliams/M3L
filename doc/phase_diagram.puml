@@ -1,19 +1,34 @@
 @startuml M3L
 package utils{
     class Conversion{
-        aconv: float
+        KB: float
+        N0: float
+        A0: float
+        HARTREE: float
+        ELECTRON_MASS: float
+        PERIOD_BOHR: float
+        ACONV: float
+        MCONV: float
+        ECONV: float
+        TIMECONV: float
+        TEMPCONV: float
     }
   }
 package molecular_dynamics{
     class MolecularDynamics{
-        nsteps: integer
-        frames: list
-        timestep: float
+        nstep: integer
+        frames: integer
+        kinetic_energy: float
+        temperature: float
         convertUnits()
         running()
         setFrame()
+        setVelocit()
+        setKineticEnergy()
+        setTemperature()
     }
     class Integration{
+        timestep: float
         nve()
     }
     class ForceField{
@@ -31,6 +46,7 @@ package structure{
       setNatom()
       setVolume()
       ccp()
+      setMass()
     }
     class Atom{
         atoms: list

@@ -50,7 +50,6 @@ class System(Atom):
                     'fx': 0.0,
                     'fy': 0.0,
                     'fz': 0.0,
-                    'energy': 0.e0,
                     's2': 0.e0
                     })
 

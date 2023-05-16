@@ -6,7 +6,7 @@ class ForceField(Conversion):
 
     def __init__(self, atoms):
 
-        self.k_cte = 1/(self.ECONV/self.ACONV**2)
+        self.k_cte = 15/(self.ECONV/self.ACONV**2)
         self.r_cte = 1.0/self.ACONV
         self.atm = atoms
 
@@ -77,20 +77,6 @@ class MolecularDynamics(Integration):
         self.ccp()
 
         return
-
-#    def convertUnitsInv(self):
-#
-#       self.acell = self.acell*self.ACONV
-#       self.bcell = self.bcell*self.ACONV
-#       self.ccell = self.ccell*self.ACONV
-#       self.timestep = self.timestep*self.TIMECONV
-#       self.temperature = self.temperature*self.TEMPCONV
-
-#       for at in self.atoms:
-#           at['x'] = at['x']*self.ACONV
-#           at['y'] = at['y']*self.ACONV
-#           at['z'] = at['z']*self.ACONV
-#           at['mass'] = at['mass']*self.MCONV
 
     def convertUnits(self):
 
