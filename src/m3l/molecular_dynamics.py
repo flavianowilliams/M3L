@@ -51,19 +51,19 @@ class MolecularDynamics(Integration):
 
         return
 
-    def convertUnitsInv(self):
+#    def convertUnitsInv(self):
+#
+#       self.acell = self.acell*self.ACONV
+#       self.bcell = self.bcell*self.ACONV
+#       self.ccell = self.ccell*self.ACONV
+#       self.timestep = self.timestep*self.TIMECONV
+#       self.temperature = self.temperature*self.TEMPCONV
 
-        self.acell = self.acell*self.ACONV
-        self.bcell = self.bcell*self.ACONV
-        self.ccell = self.ccell*self.ACONV
-        self.timestep = self.timestep*self.TIMECONV
-        self.temperature = self.temperature*self.TEMPCONV
-
-        for at in self.atoms:
-            at['x'] = at['x']*self.ACONV
-            at['y'] = at['y']*self.ACONV
-            at['z'] = at['z']*self.ACONV
-            at['mass'] = at['mass']*self.MCONV
+#       for at in self.atoms:
+#           at['x'] = at['x']*self.ACONV
+#           at['y'] = at['y']*self.ACONV
+#           at['z'] = at['z']*self.ACONV
+#           at['mass'] = at['mass']*self.MCONV
 
     def convertUnits(self):
 
@@ -103,12 +103,12 @@ class MolecularDynamics(Integration):
             self.frames.append({
                 'step': step,
                 'id': at['id'],
-                'mass': 1.0,
-                'x': at['x'],
-                'y': at['y'],
-                'z': at['z'],
+                'mass': at['mass']*self.MCONV,
+                'x': at['x']*self.ACONV,
+                'y': at['y']*self.ACONV,
+                'z': at['z']*self.ACONV,
                 'energy': 0.e0,
-                'temperature': self.temperature,
+                'temperature': self.temperature*self.TEMPCONV,
                 's2': 0.e0
                 })
 
