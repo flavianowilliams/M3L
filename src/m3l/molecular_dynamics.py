@@ -53,44 +53,46 @@ class MolecularDynamics(Integration):
 
     def convertUnitsInv(self):
 
-        self.acell = self.acell*self.aconv
-        self.bcell = self.bcell*self.aconv
-        self.ccell = self.ccell*self.aconv
-        self.timestep = self.timestep*self.timeconv
+        self.acell = self.acell*self.ACONV
+        self.bcell = self.bcell*self.ACONV
+        self.ccell = self.ccell*self.ACONV
+        self.timestep = self.timestep*self.TIMECONV
+        self.temperature = self.temperature*self.TEMPCONV
 
         for at in self.atoms:
-            at['x'] = at['x']*self.aconv
-            at['y'] = at['y']*self.aconv
-            at['z'] = at['z']*self.aconv
-            at['mass'] = at['mass']*self.mconv
+            at['x'] = at['x']*self.ACONV
+            at['y'] = at['y']*self.ACONV
+            at['z'] = at['z']*self.ACONV
+            at['mass'] = at['mass']*self.MCONV
 
     def convertUnits(self):
 
-        self.acell = self.acell/self.aconv
-        self.bcell = self.bcell/self.aconv
-        self.ccell = self.ccell/self.aconv
-        self.timestep = self.timestep/self.timeconv
+        self.acell = self.acell/self.ACONV
+        self.bcell = self.bcell/self.ACONV
+        self.ccell = self.ccell/self.ACONV
+        self.timestep = self.timestep/self.TIMECONV
+        self.temperature = self.temperature/self.TEMPCONV
 
         for at in self.atoms:
-            at['x'] = at['x']/self.aconv
-            at['y'] = at['y']/self.aconv
-            at['z'] = at['z']/self.aconv
-            at['mass'] = at['mass']/self.mconv
+            at['x'] = at['x']/self.ACONV
+            at['y'] = at['y']/self.ACONV
+            at['z'] = at['z']/self.ACONV
+            at['mass'] = at['mass']/self.MCONV
 
     def running(self, timestep, nstep, temperature):
 
         self.timestep = timestep
         self.nsteps = nstep
-        self.temperature_input = temperature
+        self.temperature = temperature
+
+        self.convertUnits()
 
         self.setVelocity()
 
         for step in range(1,nstep+1):
-            self.convertUnits()
             self.ccp()
             self.nve()
             self.setTemperature()
-            self.convertUnitsInv()
             self.setFrame(step)
 
         return
@@ -113,9 +115,9 @@ class MolecularDynamics(Integration):
     def setVelocity(self):
 
         for at in self.atoms:
-            at['vx'] = sqrt(self.kb*self.temperature_input/at['mass'])
-            at['vy'] = sqrt(self.kb*self.temperature_input/at['mass'])
-            at['vz'] = sqrt(self.kb*self.temperature_input/at['mass'])
+            at['vx'] = sqrt(self.KB*self.temperature/at['mass'])
+            at['vy'] = sqrt(self.KB*self.temperature/at['mass'])
+            at['vz'] = sqrt(self.KB*self.temperature/at['mass'])
 
     def setTemperature(self):
 
@@ -125,10 +127,10 @@ class MolecularDynamics(Integration):
         for atom in self.atoms:
             soma += atom['mass']*(atom['vx']**2+atom['vy']**2+atom['vz']**2)
 
-        self.temperature = soma/(self.kb*nfree)
+        self.temperature = soma/(self.KB*nfree)
 
     def __str__(self):
         return (f"""---Molecular dynamics module---
                 System:
-                - Orthorrombic cell: {self.volume['value']*self.aconv**3} {self.volume['unit']}
+                - Orthorrombic cell: {self.volume['value']} {self.volume['unit']}
                 - Total of atoms: {self.natoms}""")
