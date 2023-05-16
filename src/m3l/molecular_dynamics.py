@@ -92,6 +92,7 @@ class MolecularDynamics(Integration):
         for step in range(1,nstep+1):
             self.ccp()
             self.nve()
+            self.setKineticEnergy()
             self.setTemperature()
             self.setFrame(step)
 
@@ -114,10 +115,18 @@ class MolecularDynamics(Integration):
 
     def setVelocity(self):
 
-        for at in self.atoms:
-            at['vx'] = sqrt(self.KB*self.temperature/at['mass'])
-            at['vy'] = sqrt(self.KB*self.temperature/at['mass'])
-            at['vz'] = sqrt(self.KB*self.temperature/at['mass'])
+        for atom in self.atoms:
+            atom['vx'] = sqrt(self.KB*self.temperature/atom['mass'])
+            atom['vy'] = sqrt(self.KB*self.temperature/atom['mass'])
+            atom['vz'] = sqrt(self.KB*self.temperature/atom['mass'])
+
+    def setKineticEnergy(self):
+
+        soma = 0.0
+        for atom in self.atoms:
+            soma += atom['mass']*(atom['vx']**2+atom['vy']**2+atom['vz']**2)
+
+        self.kinetic_energy = 0.5*soma
 
     def setTemperature(self):
 
