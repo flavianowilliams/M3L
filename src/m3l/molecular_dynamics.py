@@ -1,32 +1,40 @@
 from numpy import sqrt
-from m3l.structure import System 
+from m3l.structure import System
+from m3l.utils import Conversion 
 
-class ForceField():
+class ForceField(Conversion):
 
-    def __init__(self):
+    def __init__(self, atoms):
 
-        self.k_cte = 1.25
-        self.r_cte = 1.88
+        self.k_cte = 1/(self.ECONV/self.ACONV**2)
+        self.r_cte = 1.0/self.ACONV
+        self.atm = atoms
 
-    def twoPaticle(self, atoms):
+        self.twoPaticle()
 
-        epot = 0.0
-        for i in range(len(atoms)):
-            for j in range(i+1,len(atoms)):
-                x = atoms[j]['x']-atoms[i]['x']
-                y = atoms[j]['y']-atoms[i]['y']
-                z = atoms[j]['z']-atoms[i]['z']
+    def twoPaticle(self):
+
+        self.epot = 0.0
+        for i in range(len(self.atm)):
+            for j in range(i+1,len(self.atm)):
+                x = self.atm[j]['x']-self.atm[i]['x']
+                y = self.atm[j]['y']-self.atm[i]['y']
+                z = self.atm[j]['z']-self.atm[i]['z']
                 dr = sqrt(x**2+y**2+z**2)
-                epot += 0.5*self.k_cte*(dr-self.r_cte)**2
-                fr = self.k_cte*(dr-self.r_cte)/dr
-                atoms[i]['fx']+=fr*x
-                atoms[i]['fy']+=fr*y
-                atoms[i]['fz']+=fr*z
-                atoms[j]['fx']+=-fr*x
-                atoms[j]['fy']+=-fr*y
-                atoms[j]['fz']+=-fr*z
+                self.epot += 0.5*self.k_cte*(dr-self.r_cte)**2
+                fr = -self.k_cte*(dr-self.r_cte)/dr
+                self.atm[i]['fx']+=-fr*x
+                self.atm[i]['fy']+=-fr*y
+                self.atm[i]['fz']+=-fr*z
+                self.atm[j]['fx']+=fr*x
+                self.atm[j]['fy']+=fr*y
+                self.atm[j]['fz']+=fr*z
 
-        return atoms
+    def getAtm(self):
+        return self.atm
+
+    def getEpot(self):
+        return self.epot 
 
 class Integration(System):
 
@@ -92,11 +100,11 @@ class MolecularDynamics(Integration):
         self.timestep = self.timestep/self.TIMECONV
         self.temperature = self.temperature/self.TEMPCONV
 
-        for at in self.atoms:
-            at['x'] = at['x']/self.ACONV
-            at['y'] = at['y']/self.ACONV
-            at['z'] = at['z']/self.ACONV
-            at['mass'] = at['mass']/self.MCONV
+        for atom in self.atoms:
+            atom['x'] = atom['x']/self.ACONV
+            atom['y'] = atom['y']/self.ACONV
+            atom['z'] = atom['z']/self.ACONV
+            atom['mass'] = atom['mass']/self.MCONV
 
     def running(self, timestep, nstep, temperature):
 
@@ -110,7 +118,9 @@ class MolecularDynamics(Integration):
 
         for step in range(1,nstep+1):
             self.ccp()
-            self.atoms = ForceField().twoPaticle(self.atoms)
+            force_field = ForceField(self.atoms)
+            self.atoms = force_field.getAtm()
+            self.epot = force_field.getEpot()
             self.nve()
             self.setKineticEnergy()
             self.setTemperature()
@@ -128,7 +138,7 @@ class MolecularDynamics(Integration):
                 'x': at['x']*self.ACONV,
                 'y': at['y']*self.ACONV,
                 'z': at['z']*self.ACONV,
-                'energy': self.kinetic_energy*self.ECONV,
+                'energy': (self.kinetic_energy+self.epot)*self.ECONV,
                 'temperature': self.temperature*self.TEMPCONV,
                 's2': 0.e0
                 })
@@ -138,9 +148,9 @@ class MolecularDynamics(Integration):
         nfree = 3*(self.natoms-1)
 
         for atom in self.atoms:
-            atom['vx'] = sqrt(nfree*self.KB*self.temperature/(3.0*atom['mass']))
-            atom['vy'] = sqrt(nfree*self.KB*self.temperature/(3.0*atom['mass']))
-            atom['vz'] = sqrt(nfree*self.KB*self.temperature/(3.0*atom['mass']))
+            atom['vx'] = sqrt(nfree*self.KB*self.temperature/(6.0*atom['mass']))
+            atom['vy'] = sqrt(nfree*self.KB*self.temperature/(6.0*atom['mass']))
+            atom['vz'] = sqrt(nfree*self.KB*self.temperature/(6.0*atom['mass']))
 
     def setKineticEnergy(self):
 
