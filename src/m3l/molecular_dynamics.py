@@ -108,17 +108,19 @@ class MolecularDynamics(Integration):
                 'x': at['x']*self.ACONV,
                 'y': at['y']*self.ACONV,
                 'z': at['z']*self.ACONV,
-                'energy': 0.e0,
+                'energy': self.kinetic_energy*self.ECONV,
                 'temperature': self.temperature*self.TEMPCONV,
                 's2': 0.e0
                 })
 
     def setVelocity(self):
 
+        nfree = 3*(self.natoms-1)
+
         for atom in self.atoms:
-            atom['vx'] = sqrt(self.KB*self.temperature/atom['mass'])
-            atom['vy'] = sqrt(self.KB*self.temperature/atom['mass'])
-            atom['vz'] = sqrt(self.KB*self.temperature/atom['mass'])
+            atom['vx'] = sqrt(nfree*self.KB*self.temperature/(3.0*atom['mass']))
+            atom['vy'] = sqrt(nfree*self.KB*self.temperature/(3.0*atom['mass']))
+            atom['vz'] = sqrt(nfree*self.KB*self.temperature/(3.0*atom['mass']))
 
     def setKineticEnergy(self):
 
@@ -132,11 +134,7 @@ class MolecularDynamics(Integration):
 
         nfree = 3*(self.natoms-1)
 
-        soma = 0.0
-        for atom in self.atoms:
-            soma += atom['mass']*(atom['vx']**2+atom['vy']**2+atom['vz']**2)
-
-        self.temperature = soma/(self.KB*nfree)
+        self.temperature = 2.0*self.kinetic_energy/(self.KB*nfree)
 
     def __str__(self):
         return (f"""---Molecular dynamics module---
