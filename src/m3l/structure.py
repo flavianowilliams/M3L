@@ -1,3 +1,4 @@
+import csv
 from m3l.utils import Conversion
 
 class Atom(Conversion):
@@ -12,6 +13,8 @@ class Atom(Conversion):
 
         if atm == 'H':
             return 1.008
+        elif atm == 'Ar':
+            return 39.948
 
 class System(Atom):
 
@@ -24,34 +27,55 @@ class System(Atom):
         self.bcell = bcell
         self.ccell = ccell
         self.filename = filename
+        self.reload = False
 
     def setAtoms(self):
-        with open(self.filename, 'r') as xyz_file:
-            natoms = xyz_file.readline()
-            natoms = int(natoms)
-            xyz_file.readline()
-            for i in range(natoms):
-                p1, p2, p3, p4 = xyz_file.readline().split(maxsplit=3)
-                p1 = str(p1)
-                p2 = float(p2)
-                p3 = float(p3)
-                p4 = float(p4)
-                mass = self.setMass(p1)
-                self.atoms.append({
-                    'id': i,
-                    'atom': p1,
-                    'mass': mass,
-                    'x': p2,
-                    'y': p3,
-                    'z': p4,
-                    'vx': 0.0,
-                    'vy': 0.0,
-                    'vz': 0.0,
-                    'fx': 0.0,
-                    'fy': 0.0,
-                    'fz': 0.0,
-                    's2': 0.e0
-                    })
+        if self.reload:
+            with open('system.csv', newline='') as xyz_file:
+                file = csv.DictReader(xyz_file)
+                for row in file:
+                    self.atoms.append({
+                        'id': int(row['id']),
+                        'symbol': row['symbol'],
+                        'mass': float(row['mass']),
+                        'x': float(row['x']),
+                        'y': float(row['y']),
+                        'z': float(row['z']),
+                        'vx': float(row['vx']),
+                        'vy': float(row['vy']),
+                        'vz': float(row['vz']),
+                        'fx': float(row['fx']),
+                        'fy': float(row['fy']),
+                        'fz': float(row['fz']),
+                        's2': float(row['s2'])
+                        })
+        else:
+            with open(self.filename, 'r') as xyz_file:
+                natoms = xyz_file.readline()
+                natoms = int(natoms)
+                xyz_file.readline()
+                for i in range(natoms):
+                    p1, p2, p3, p4 = xyz_file.readline().split(maxsplit=3)
+                    p1 = str(p1)
+                    p2 = float(p2)
+                    p3 = float(p3)
+                    p4 = float(p4)
+                    mass = self.setMass(p1)
+                    self.atoms.append({
+                        'id': i,
+                        'symbol': p1,
+                        'mass': mass,
+                        'x': p2,
+                        'y': p3,
+                        'z': p4,
+                        'vx': 0.0,
+                        'vy': 0.0,
+                        'vz': 0.0,
+                        'fx': 0.0,
+                        'fy': 0.0,
+                        'fz': 0.0,
+                        's2': 0.e0
+                        })
 
         return self.atoms
 

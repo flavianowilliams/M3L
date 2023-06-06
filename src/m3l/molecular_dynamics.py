@@ -7,8 +7,8 @@ class ForceField(Conversion):
 
     def __init__(self, atoms):
 
-        self.k_cte = 15/(self.ECONV/self.ACONV**2)
-        self.r_cte = 1.0/self.ACONV
+        self.e_cte = 120/self.ECONV
+        self.sigma_cte = 3.4/self.ACONV
         self.atm = atoms
 
         self.twoPaticle()
@@ -22,8 +22,8 @@ class ForceField(Conversion):
                 y = self.atm[j]['y']-self.atm[i]['y']
                 z = self.atm[j]['z']-self.atm[i]['z']
                 dr = sqrt(x**2+y**2+z**2)
-                self.epot += 0.5*self.k_cte*(dr-self.r_cte)**2
-                fr = -self.k_cte*(dr-self.r_cte)/dr
+                self.epot += 4.0e0*self.e_cte*((dr/self.sigma_cte)**12-(dr/self.sigma_cte)**6)
+                fr = 24.0e0*self.e_cte*(2.0e0*(dr/self.sigma_cte)**12-(dr/self.sigma_cte)**6)
                 self.atm[i]['fx']+=-fr*x
                 self.atm[i]['fy']+=-fr*y
                 self.atm[i]['fz']+=-fr*z
@@ -66,9 +66,12 @@ class Integration(System):
 
 class MolecularDynamics(Integration):
 
-    def __init__(self, acell, bcell, ccell, filename):
+    def __init__(self, acell, bcell, ccell, filename, **kwargs):
 
         super().__init__(acell, bcell, ccell, filename)
+
+        if kwargs['reload'] is not None:
+            self.reload = kwargs['reload']
 
         self.setAtoms()
         self.setNAtoms()
@@ -89,6 +92,12 @@ class MolecularDynamics(Integration):
             atom['x'] = atom['x']/self.ACONV
             atom['y'] = atom['y']/self.ACONV
             atom['z'] = atom['z']/self.ACONV
+            atom['vx'] = atom['vx']/(self.ACONV/self.TIMECONV)
+            atom['vy'] = atom['vy']/(self.ACONV/self.TIMECONV)
+            atom['vz'] = atom['vz']/(self.ACONV/self.TIMECONV)
+            atom['fx'] = atom['fx']/(self.ECONV/self.ACONV)
+            atom['fy'] = atom['fy']/(self.ECONV/self.ACONV)
+            atom['fz'] = atom['fz']/(self.ECONV/self.ACONV)
             atom['mass'] = atom['mass']/self.MCONV
 
     def running(self, timestep, nstep, temperature):
@@ -103,7 +112,7 @@ class MolecularDynamics(Integration):
 
         with open('history.csv', 'w', newline='') as file:
 
-            fields = ['step', 'id', 'mass', 'x', 'y', 'z', 'energy', 'temperature', 's2']
+            fields = ['step', 'id', 'symbol', 'mass', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx', 'fy', 'fz', 'energy', 'temperature', 's2']
             history = csv.DictWriter(file, fieldnames=fields)
             history.writeheader()
 
@@ -118,6 +127,29 @@ class MolecularDynamics(Integration):
                 self.setFrame(step)
                 history.writerows(self.frame)
 
+        with open('system.csv', 'w', newline='') as file:
+
+            fields = ['id', 'symbol', 'mass', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx', 'fy', 'fz', 's2']
+            system = csv.DictWriter(file, fieldnames=fields)
+            system.writeheader()
+            for atom in self.frame:
+                system.writerow({
+                    'id': atom['id'],
+                    'symbol': atom['symbol'],
+                    'mass': atom['mass'],
+                    'x': atom['x'],
+                    'y': atom['y'],
+                    'z': atom['z'],
+                    'vx': atom['vx'],
+                    'vy': atom['vy'],
+                    'vz': atom['vz'],
+                    'fx': atom['fx'],
+                    'fy': atom['fy'],
+                    'fz': atom['fz'],
+                    's2': atom['s2'],
+                    })
+#            system.writerows(self.frame)
+
         return
 
     def setFrame(self, step):
@@ -127,10 +159,17 @@ class MolecularDynamics(Integration):
             self.frame.append({
                 'step': step,
                 'id': atom['id'],
+                'symbol': atom['symbol'],
                 'mass': atom['mass']*self.MCONV,
                 'x': atom['x']*self.ACONV,
                 'y': atom['y']*self.ACONV,
                 'z': atom['z']*self.ACONV,
+                'vx': atom['vx']*(self.ACONV/self.TIMECONV),
+                'vy': atom['vy']*(self.ACONV/self.TIMECONV),
+                'vz': atom['vz']*(self.ACONV/self.TIMECONV),
+                'fx': atom['fx']*(self.ECONV/self.ACONV),
+                'fy': atom['fy']*(self.ECONV/self.ACONV),
+                'fz': atom['fz']*(self.ECONV/self.ACONV),
                 'energy': (self.kinetic_energy+self.epot)*self.ECONV,
                 'temperature': self.temperature*self.TEMPCONV,
                 's2': 0.e0
