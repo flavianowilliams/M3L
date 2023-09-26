@@ -148,7 +148,6 @@ class MolecularDynamics(Integration):
                     'fz': atom['fz'],
                     's2': atom['s2'],
                     })
-#            system.writerows(self.frame)
 
         return
 
