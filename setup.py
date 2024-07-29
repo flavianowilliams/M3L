@@ -1,5 +1,6 @@
 from setuptools import find_packages
-from numpy.distutils.core import setup#, Extension
+#from distutils.core import setup#, Extension
+from setuptools import setup
 #from pathlib import Path
 
 #BASE_DIR = Path(__file__).resolve().parent
