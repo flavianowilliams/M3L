@@ -1,204 +1,235 @@
-import csv
-from numpy import sqrt
-from m3l.structure import System
+import numpy as np
+from m3l.structure import Atom
 from m3l.utils import Conversion
 
 class ForceField(Conversion):
 
-    def __init__(self, atoms):
+    params = []
 
-        self.e_cte = 120/self.ECONV
-        self.sigma_cte = 3.4/self.ACONV
-        self.atm = atoms
+    def vdw(self, system, params):
 
-        self.twoPaticle()
+        for atom in system.atoms:
+            atom[7] = np.array(0.0)
+            atom[8] = np.array(0.0)
+            atom[9] = np.array(0.0)
 
-    def twoPaticle(self):
+        for i in range(len(system.atoms)):
+            epot = 0.0
+            for j in range(i+1, len(system.atoms)):
+                xx = system.atoms[j][1]-system.atoms[i][1]
+                yy = system.atoms[j][2]-system.atoms[i][2]
+                zz = system.atoms[j][3]-system.atoms[i][3]
+                drb = self.bondConstraint(xx, yy, zz, system.cell)
+                dr = np.sqrt(drb[0]**2+drb[1]**2+drb[2]**2)
+                epot = 4.0*params[0]*((params[1]/dr)**12-(params[1]/dr)**6)
+                fr = 24.0*params[0]*(2.0*(params[1]/dr)**12-(params[1]/dr)**6)
+                system.atoms[i][7] +=-fr*drb[0]
+                system.atoms[i][8] +=-fr*drb[1]
+                system.atoms[i][9] +=-fr*drb[2]
+                system.atoms[i][10] += epot
+                system.atoms[j][7] += fr*drb[0]
+                system.atoms[j][8] += fr*drb[1]
+                system.atoms[j][9] += fr*drb[2]
+                system.atoms[j][10] += epot
 
-        self.epot = 0.0
-        for i in range(len(self.atm)):
-            for j in range(i+1,len(self.atm)):
-                x = self.atm[j]['x']-self.atm[i]['x']
-                y = self.atm[j]['y']-self.atm[i]['y']
-                z = self.atm[j]['z']-self.atm[i]['z']
-                dr = sqrt(x**2+y**2+z**2)
-                self.epot += 4.0e0*self.e_cte*((dr/self.sigma_cte)**12-(dr/self.sigma_cte)**6)
-                fr = 24.0e0*self.e_cte*(2.0e0*(dr/self.sigma_cte)**12-(dr/self.sigma_cte)**6)
-                self.atm[i]['fx']+=-fr*x
-                self.atm[i]['fy']+=-fr*y
-                self.atm[i]['fz']+=-fr*z
-                self.atm[j]['fx']+=fr*x
-                self.atm[j]['fy']+=fr*y
-                self.atm[j]['fz']+=fr*z
+        return system.atoms
 
-    def getAtm(self):
-        return self.atm
+    def bondConstraint(self, xx, yy, zz, cell):
+        xx = xx - cell[0]*int(2.0*(xx/cell[0]))
+        yy = yy - cell[1]*int(2.0*(yy/cell[1]))
+        zz = zz - cell[2]*int(2.0*(zz/cell[2]))
+        return np.array([xx, yy, zz])
 
-    def getEpot(self):
-        return self.epot 
+    def __call__(self):
+        return np.array(self.params)
 
-class Integration(System):
+class Ensemble(Conversion):
 
-#    def __init__(self):
+    def __init__(self, timestep, force_field, integrator):
+        super().__init__()
 
-#        super().__init__(acell, bcell, ccell, filename)
-
-    timestep = 0.0
+        self.timestep = timestep
+        self.temp_scale = np.array(1.0)/self.TIMECONV
+        self.integrator = integrator
+        self.force_field = force_field
 
     def nve(self):
 
-        for atom in self.atoms:
-            atom['vx'] = atom['vx']+0.5*self.timestep*atom['fx']/atom['mass']
-            atom['vy'] = atom['vy']+0.5*self.timestep*atom['fy']/atom['mass']
-            atom['vz'] = atom['vz']+0.5*self.timestep*atom['fz']/atom['mass']
-            atom['x'] = atom['x']+self.timestep*atom['vx']
-            atom['y'] = atom['y']+self.timestep*atom['vy']
-            atom['z'] = atom['z']+self.timestep*atom['vz']
+        ForceField().vdw(self.system, self.force_field)
+
+        for atom in self.system.atoms:
+            mass = Atom(atom[0]).setMass()
+            atom[4] = atom[4]+0.5*self.timestep*atom[7]/mass
+            atom[5] = atom[5]+0.5*self.timestep*atom[8]/mass
+            atom[6] = atom[6]+0.5*self.timestep*atom[9]/mass
+            atom[1] = atom[1]+self.timestep*atom[4]
+            atom[2] = atom[2]+self.timestep*atom[5]
+            atom[3] = atom[3]+self.timestep*atom[6]
 
         self.ccp()
 
-        for atom in self.atoms:
-            atom['vx'] = atom['vx']+0.5*self.timestep*atom['fx']/atom['mass']
-            atom['vy'] = atom['vy']+0.5*self.timestep*atom['fy']/atom['mass']
-            atom['vz'] = atom['vz']+0.5*self.timestep*atom['fz']/atom['mass']
+        for atom in self.system.atoms:
+            mass = Atom(atom[0]).setMass()
+            atom[4] = atom[4]+0.5*self.timestep*atom[7]/mass
+            atom[5] = atom[5]+0.5*self.timestep*atom[8]/mass
+            atom[6] = atom[6]+0.5*self.timestep*atom[9]/mass
 
-        return
+        return self.system
 
-class MolecularDynamics(Integration):
+    def nvt(self):
 
-    def __init__(self, acell, bcell, ccell, filename, **kwargs):
+        self.force_field.vdw(self.system.atoms)
 
-        super().__init__(acell, bcell, ccell, filename)
+        for atom in self.system.atoms:
+            mass = Atom(atom[0]).setMass()
+            atom[4] = atom[4]+0.5*self.timestep*atom[7]/mass
+            atom[5] = atom[5]+0.5*self.timestep*atom[8]/mass
+            atom[6] = atom[6]+0.5*self.timestep*atom[9]/mass
+            atom[1] = atom[1]+self.timestep*atom[4]
+            atom[2] = atom[2]+self.timestep*atom[5]
+            atom[3] = atom[3]+self.timestep*atom[6]
 
-        if kwargs['reload'] is not None:
-            self.reload = kwargs['reload']
-
-        self.setAtoms()
-        self.setNAtoms()
-        self.setVolume()
         self.ccp()
 
-        return
+        self.force_field.vdw(self.system.atoms)
+
+        for atom in self.system.atoms:
+            mass = Atom(atom[0]).setMass()
+            atom[4] = atom[4]+0.5*self.timestep*atom[7]/mass
+            atom[5] = atom[5]+0.5*self.timestep*atom[8]/mass
+            atom[6] = atom[6]+0.5*self.timestep*atom[9]/mass
+
+    def scaling(self):
+        value = np.sqrt(1.0+self.timestep*(self.system.temperature/self.temp_prm-1.0)/self.temp_scale)
+        return value
+
+    def ccp(self):
+        if self.system.cell[0] > 0.0 and self.system.cell[1] > 0.0 and self.system.cell[2] > 0.0:
+            for at in self.system.atoms:
+                at[1]=at[1]-self.system.cell[0]*int(at[1]/self.system.cell[0])
+                at[2]=at[2]-self.system.cell[1]*int(at[2]/self.system.cell[1])
+                at[3]=at[3]-self.system.cell[2]*int(at[3]/self.system.cell[2])
+#        else:
+#            logging.critical('Constant lattice must be larger than zero!')
+#            sys.exit()
 
     def convertUnits(self):
 
-        self.acell = self.acell/self.ACONV
-        self.bcell = self.bcell/self.ACONV
-        self.ccell = self.ccell/self.ACONV
         self.timestep = self.timestep/self.TIMECONV
-        self.temperature = self.temperature/self.TEMPCONV
+        self.temp_prm = self.temp_prm/self.TEMPCONV
+#        self.rc_prm = self.rc_prm/self.ACONV
 
-        for atom in self.atoms:
-            atom['x'] = atom['x']/self.ACONV
-            atom['y'] = atom['y']/self.ACONV
-            atom['z'] = atom['z']/self.ACONV
-            atom['vx'] = atom['vx']/(self.ACONV/self.TIMECONV)
-            atom['vy'] = atom['vy']/(self.ACONV/self.TIMECONV)
-            atom['vz'] = atom['vz']/(self.ACONV/self.TIMECONV)
-            atom['fx'] = atom['fx']/(self.ECONV/self.ACONV)
-            atom['fy'] = atom['fy']/(self.ECONV/self.ACONV)
-            atom['fz'] = atom['fz']/(self.ECONV/self.ACONV)
-            atom['mass'] = atom['mass']/self.MCONV
+        self.system.cell[0] = self.system.cell[0]/self.ACONV
+        self.system.cell[1] = self.system.cell[1]/self.ACONV
+        self.system.cell[2] = self.system.cell[2]/self.ACONV
 
-    def running(self, timestep, nstep, temperature):
+        for atom in self.system.atoms:
+            atom[1] = atom[1]/self.ACONV
+            atom[2] = atom[2]/self.ACONV
+            atom[3] = atom[3]/self.ACONV
+            atom[4] = atom[4]/(self.ACONV/self.TIMECONV)
+            atom[5] = atom[5]/(self.ACONV/self.TIMECONV)
+            atom[6] = atom[6]/(self.ACONV/self.TIMECONV)
+            atom[7] = atom[7]/(self.ECONV/self.ACONV)
+            atom[8] = atom[8]/(self.ECONV/self.ACONV)
+            atom[9] = atom[9]/(self.ECONV/self.ACONV)
+            atom[10] = atom[10]/self.ECONV
 
-        self.timestep = timestep
-        self.nsteps = nstep
+    def convertUnitsInv(self):
+
+        self.timestep = self.timestep*self.TIMECONV
+        self.temp_prm = self.temp_prm*self.TEMPCONV
+#        self.rc_prm = self.rc_prm/self.ACONV
+
+        self.system.cell[0] = self.system.cell[0]*self.ACONV
+        self.system.cell[1] = self.system.cell[1]*self.ACONV
+        self.system.cell[2] = self.system.cell[2]*self.ACONV
+
+        for atom in self.system.atoms:
+            atom[1] = atom[1]*self.ACONV
+            atom[2] = atom[2]*self.ACONV
+            atom[3] = atom[3]*self.ACONV
+            atom[4] = atom[4]*(self.ACONV/self.TIMECONV)
+            atom[5] = atom[5]*(self.ACONV/self.TIMECONV)
+            atom[6] = atom[6]*(self.ACONV/self.TIMECONV)
+            atom[7] = atom[7]*(self.ECONV/self.ACONV)
+            atom[8] = atom[8]*(self.ECONV/self.ACONV)
+            atom[9] = atom[9]*(self.ECONV/self.ACONV)
+            atom[10] = atom[10]*self.ECONV
+
+    def __call__(self, system, thermodynamics):
+        self.system = system
+        self.temp_prm = thermodynamics.temperature
+        if self.integrator == 'nve':
+            return self.nve()
+        elif self.integrator == 'nvt':
+            return self.nvt()
+
+class Thermodynamics(Conversion):
+
+    def __init__(self, temperature, pressure):
+        super().__init__()
+
         self.temperature = temperature
+        self.pressure = pressure
 
-        self.convertUnits()
+    def setVelocity(self, atoms):
 
-        self.setVelocity()
+        for atom in atoms:
+            mass = Atom(atom[0]).setMass()
+            atom[4] = np.sqrt(self.nfree*self.KB*self.system.temperature/(6.0*mass))
+            atom[5] = np.sqrt(self.nfree*self.KB*self.system.temperature/(6.0*mass)) 
+            atom[6] = np.sqrt(self.nfree*self.KB*self.system.temperature/(6.0*mass))
 
-        with open('history.csv', 'w', newline='') as file:
-
-            fields = ['step', 'id', 'symbol', 'mass', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx', 'fy', 'fz', 'energy', 'temperature', 's2']
-            history = csv.DictWriter(file, fieldnames=fields)
-            history.writeheader()
-
-            for step in range(1,nstep+1):
-                self.ccp()
-                force_field = ForceField(self.atoms)
-                self.atoms = force_field.getAtm()
-                self.epot = force_field.getEpot()
-                self.nve()
-                self.setKineticEnergy()
-                self.setTemperature()
-                self.setFrame(step)
-                history.writerows(self.frame)
-
-        with open('system.csv', 'w', newline='') as file:
-
-            fields = ['id', 'symbol', 'mass', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx', 'fy', 'fz', 's2']
-            system = csv.DictWriter(file, fieldnames=fields)
-            system.writeheader()
-            for atom in self.frame:
-                system.writerow({
-                    'id': atom['id'],
-                    'symbol': atom['symbol'],
-                    'mass': atom['mass'],
-                    'x': atom['x'],
-                    'y': atom['y'],
-                    'z': atom['z'],
-                    'vx': atom['vx'],
-                    'vy': atom['vy'],
-                    'vz': atom['vz'],
-                    'fx': atom['fx'],
-                    'fy': atom['fy'],
-                    'fz': atom['fz'],
-                    's2': atom['s2'],
-                    })
-
-        return
-
-    def setFrame(self, step):
-
-        self.frame = []
-        for atom in self.atoms:
-            self.frame.append({
-                'step': step,
-                'id': atom['id'],
-                'symbol': atom['symbol'],
-                'mass': atom['mass']*self.MCONV,
-                'x': atom['x']*self.ACONV,
-                'y': atom['y']*self.ACONV,
-                'z': atom['z']*self.ACONV,
-                'vx': atom['vx']*(self.ACONV/self.TIMECONV),
-                'vy': atom['vy']*(self.ACONV/self.TIMECONV),
-                'vz': atom['vz']*(self.ACONV/self.TIMECONV),
-                'fx': atom['fx']*(self.ECONV/self.ACONV),
-                'fy': atom['fy']*(self.ECONV/self.ACONV),
-                'fz': atom['fz']*(self.ECONV/self.ACONV),
-                'energy': (self.kinetic_energy+self.epot)*self.ECONV,
-                'temperature': self.temperature*self.TEMPCONV,
-                's2': 0.e0
-                })
-
-    def setVelocity(self):
-
-        nfree = 3*(self.natoms-1)
-
-        for atom in self.atoms:
-            atom['vx'] = sqrt(nfree*self.KB*self.temperature/(6.0*atom['mass']))
-            atom['vy'] = sqrt(nfree*self.KB*self.temperature/(6.0*atom['mass']))
-            atom['vz'] = sqrt(nfree*self.KB*self.temperature/(6.0*atom['mass']))
-
-    def setKineticEnergy(self):
+    def setKineticEnergy(self, atoms):
 
         soma = 0.0
-        for atom in self.atoms:
-            soma += atom['mass']*(atom['vx']**2+atom['vy']**2+atom['vz']**2)
+        for atom in atoms:
+            soma += atom[3]*(atom[4]**2+atom[5]**2+atom[6]**2)
 
-        self.kinetic_energy = 0.5*soma
+        self.kinetic_energy = np.array(0.5*soma)
+
+        return self.kinetic_energy
 
     def setTemperature(self):
 
-        nfree = 3*(self.natoms-1)
+        temperature = 2.0*self.kinetic_energy/(self.KB*self.nfree)
+        temperature = np.array(temperature)
 
-        self.temperature = 2.0*self.kinetic_energy/(self.KB*nfree)
+        return self.system.temperature
 
-    def __str__(self):
-        return (f"""---Molecular dynamics module---
-                System:
-                - Orthorrombic cell: {self.volume['value']} {self.volume['unit']}
-                - Total of atoms: {self.natoms}""")
+    def __call__(self, system):
+        self.system = system
+        self.nfree = (3.0*(len(system.atoms)-1.0))
+        self.setKineticEnergy(self.system.atoms)
+        self.setTemperature()
+        return self.system
+
+#    def history(self):
+#
+#        with open('history.csv', 'w', newline='') as file:
+# 
+#            fields = ['id', 'atom', 'time', 'mass', 'x', 'y', 'z', 'vx', 'vy', 'vz', 'fx', 'fy', 'fz', 'energy', 'temperature', 's2']
+#            history = csv.DictWriter(file, fieldnames=fields)
+#            history.writeheader()
+# 
+#            for step in range(1,nstep+1):
+#                self.ccp()
+#                force_field = ForceField(self.atoms)
+##                self.atoms = force_field.getAtm()
+#                Symmetry().symm2D()
+#                self.epot = force_field.getEpot()
+#                Integration(self.timestep).nve()
+#                self.setKineticEnergy()
+#                self.setTemperature()
+#                self.setFrame()
+#                history.writerows(self.frame)
+#                if step % 50 == 0:
+#                    print(f"Step: {step}; Energy: {(self.kinetic_energy+self.epot)*self.ECONV}")
+#
+#    def __str__(self):
+#        return (f"""---Molecular dynamics module---
+#                System:
+#                - Orthorrombic cell: {self.volume['value']} {self.volume['unit']}
+#
+#- Total of atoms: {self.natoms}""")

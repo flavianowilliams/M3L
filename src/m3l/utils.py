@@ -1,4 +1,5 @@
 from scipy import constants as cte
+import numpy as np 
 
 class Conversion():
 
@@ -11,18 +12,18 @@ class Conversion():
     PERIOD_BOHR = cte.value('atomic unit of time')
 
     # Conversion from SI to input units
-    ACONV = 1.0e10                   # metre => angstrom
-    ECONV = 1.438689e20              # Joule => kcal/mol
-    MCONV = 1000*N0                  # kilogram => molar mass
-    TIMECONV = 1.0e12                # second => picosecond
+    ACONV = 1.0e10                             # metre => angstrom
+    ECONV = 1.438689e20                        # Joule => kcal/mol
+    MCONV = 1000*N0                            # kilogram => molar mass
+    TIMECONV = 1.0e12                          # second => picosecond
 
     # Conversion from input to atomic unit
-    ACONV = ACONV*A0                 # angstrom => a0
-    ECONV = ECONV*HARTREE            # kcal/mol => Hartree
-    MCONV = MCONV*ELECTRON_MASS      # molar mass => amu
-    TIMECONV = TIMECONV*PERIOD_BOHR # picosecond => electron time revolution
+    ACONV = np.array(ACONV*A0)                 # angstrom => a0
+    ECONV = np.array(ECONV*HARTREE)            # kcal/mol => Hartree
+    MCONV = np.array(MCONV*ELECTRON_MASS)      # molar mass => amu
+    TIMECONV = np.array(TIMECONV*PERIOD_BOHR)  # picosecond => electron time revolution
 
     # Other conversion
-    TEMPCONV = HARTREE/KB
-    KB = KB/HARTREE                  # J/K => Hartree/K
+    TEMPCONV = np.array(HARTREE/KB)
+    KB = np.array(KB/HARTREE)                  # J/K => Hartree/K
 

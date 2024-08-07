@@ -43,6 +43,7 @@ package structure{
       volume: float
       temperature: float
       pressure: float
+      loadAtoms()
       setNatom()
       setVolume()
       ccp()
@@ -52,6 +53,12 @@ package structure{
         atoms: list
         setAtom()
   }
+    class Symmetry{
+      eta_prm: float
+      rs_prm: float
+      s2: float
+      setSym2D()
+    }
 }
 Conversion <|-- Atom
 Integration o-- ForceField
