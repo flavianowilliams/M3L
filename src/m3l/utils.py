@@ -1,7 +1,7 @@
 from scipy import constants as cte
 import numpy as np 
 
-class Conversion():
+class Constants():
 
     # physical constants
     KB = cte.value('Boltzmann constant')

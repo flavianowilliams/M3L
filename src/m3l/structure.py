@@ -1,29 +1,34 @@
 import numpy as np
 import json
-from m3l.utils import Conversion
-from numpy._core.multiarray import dtype
+from m3l.utils import Constants
 
-class Atom(Conversion):
+class Atom(Constants):
 
-    atoms = []
+    def setMass(self, zatom):
 
-    def __init__(self, zat):
-        super().__init__()
+        mass = 0.0
 
-        self.zat = zat
+        if int(zatom) == 1:
+            mass = 1.008
+        elif int(zatom) == 18:
+            mass = 39.948
 
-    def setMass(self):
+        return mass/self.MCONV
 
-        if int(self.zat) == 1:
-            self.mass = 1.008
-        elif int(self.zat) == 18:
-            self.mass = 39.948
+    def setZNumber(self, atom):
+        
+        zatom = None
 
-        return self.mass/self.MCONV
+        if atom == 'H':
+            zatom = 1.0 
+        elif atom == 'Ar':
+            zatom = 18.0
 
-class System():
+        return zatom
 
-    def __init__(self, filename):
+class System(Constants):
+
+    def loadSystem(self, filename):
 
         with open(filename, 'r') as file:
             json_file = json.load(file)
@@ -35,6 +40,92 @@ class System():
     def setNAtoms(self):
         self.natoms = len(self.atoms)
         return self.natoms
+
+    def setVelocity(self):
+
+        nfree = 3*(len(self.atoms)-1)
+
+        for atom in self.atoms:
+            mass = Atom().setMass(atom[0])
+            atom[4] = np.sqrt(nfree*self.KB*self.temperature/(6.0*mass))
+            atom[5] = np.sqrt(nfree*self.KB*self.temperature/(6.0*mass)) 
+            atom[6] = np.sqrt(nfree*self.KB*self.temperature/(6.0*mass))
+
+    def setSystem(self, temp_ext, press_ext, cell, filename):
+
+        self.temperature = np.array(temp_ext)
+        self.pressure = np.array(press_ext)
+        self.cell = np.array(cell)
+
+        with open(filename, 'r') as xyz_file:
+            natoms = xyz_file.readline()
+            natoms = int(natoms)
+            self.atoms = np.zeros(11*natoms).reshape(natoms, 11)
+            next(xyz_file)
+            for i in range(natoms):
+                ats, x, y, z = xyz_file.readline().split(maxsplit=3)
+                self.atoms[i][0] = Atom().setZNumber(ats)
+                self.atoms[i][1] = float(x)
+                self.atoms[i][2] = float(y)
+                self.atoms[i][3] = float(z)
+
+        for atom in self.atoms:
+            atom[10] = 0.0
+
+    def save(self, filename = 'system.json'):
+
+        dictfile = {
+                'cell': self.cell.tolist(),
+                'thermodynamic': [self.temperature.item(), self.pressure.item()],
+                'atoms': self.atoms.tolist()
+                }
+
+        outfile = json.dumps(dictfile, indent = 1)
+        with open(filename, 'w') as file:
+            file.write(outfile)
+
+    def convertUnits(self):
+
+        self.temperature = self.temperature/self.TEMPCONV
+
+        self.cell[0] = self.cell[0]/self.ACONV
+        self.cell[1] = self.cell[1]/self.ACONV
+        self.cell[2] = self.cell[2]/self.ACONV
+
+        for atom in self.atoms:
+            atom[1] = atom[1]/self.ACONV
+            atom[2] = atom[2]/self.ACONV
+            atom[3] = atom[3]/self.ACONV
+            atom[4] = atom[4]/(self.ACONV/self.TIMECONV)
+            atom[5] = atom[5]/(self.ACONV/self.TIMECONV)
+            atom[6] = atom[6]/(self.ACONV/self.TIMECONV)
+            atom[7] = atom[7]/(self.ECONV/self.ACONV)
+            atom[8] = atom[8]/(self.ECONV/self.ACONV)
+            atom[9] = atom[9]/(self.ECONV/self.ACONV)
+            atom[10] = atom[10]/self.ECONV
+
+    def convertUnitsInv(self):
+
+        self.temperature = self.temperature*self.TEMPCONV
+
+        self.cell[0] = self.cell[0]*self.ACONV
+        self.cell[1] = self.cell[1]*self.ACONV
+        self.cell[2] = self.cell[2]*self.ACONV
+
+        for atom in self.atoms:
+            atom[1] = atom[1]*self.ACONV
+            atom[2] = atom[2]*self.ACONV
+            atom[3] = atom[3]*self.ACONV
+            atom[4] = atom[4]*(self.ACONV/self.TIMECONV)
+            atom[5] = atom[5]*(self.ACONV/self.TIMECONV)
+            atom[6] = atom[6]*(self.ACONV/self.TIMECONV)
+            atom[7] = atom[7]*(self.ECONV/self.ACONV)
+            atom[8] = atom[8]*(self.ECONV/self.ACONV)
+            atom[9] = atom[9]*(self.ECONV/self.ACONV)
+            atom[10] = atom[10]*self.ECONV
+
+#    def __call__(self, filename):
+#        return self.loadSystem(filename)
 
 class Symmetry(System):
 
