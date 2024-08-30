@@ -133,4 +133,14 @@ module libs
       end do
 
     end subroutine neighbour_list
+!
+!-Ensemble nvt berendsen
+!
+    subroutine nvt
+      implicit none
+      integer :: i 
+      
+      sigma = 0.5*nfree*KB*temp_bath
+
+    end subroutine nvt
 end module libs

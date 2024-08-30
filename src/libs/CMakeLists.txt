@@ -23,9 +23,6 @@ target_link_libraries(fortranobject PUBLIC Python::NumPy)
 target_include_directories(fortranobject PUBLIC "${F2PY_INCLUDE_DIR}")
 set_property(TARGET fortranobject PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-#include(CMakePrintHelpers)
-#cmake_print_variables(filename)
-
 message("OK!")
 message("Gerando arquivos ${filename}module.c e ${filename}-f2pwrappers2.f90 como pré-requisito para compilação do módulo.")
 
