@@ -2,9 +2,11 @@ module libs
   integer :: natom
   integer, allocatable, dimension(:) :: nlist
   integer, allocatable, dimension(:, :) :: ilist
-  real(8) :: timestep
+  real(8) :: timestep, sigma, tstat
+  real(8) :: ekinetic
   real(8), dimension(3) :: cell
   real(8), allocatable, dimension(:) :: params
+  real(8), allocatable, dimension(:) :: mass 
   real(8), allocatable, dimension(:) :: rx, ry, rz 
   real(8), allocatable, dimension(:) :: vx, vy, vz 
   real(8), allocatable, dimension(:) :: fx, fy, fz, ea
@@ -45,7 +47,7 @@ module libs
       call bond_constraint(dx, dy, dz)
       dr = sqrt(dx**2+dy**2+dz**2)
       epot = 0.5d0*params(1)*(dr-params(2))**2
-      fr = -1.0d0*params(1)*(dr-params(2))
+      fr = -1.0d0*params(1)*(dr-params(2))/dr
       fx(1) = -fr*dx
       fy(1) = -fr*dy
       fz(1) = -fr*dz
@@ -63,9 +65,9 @@ module libs
       implicit none
       real(8), intent(inout) :: dx, dy, dz
 
-      dx = dx - cell(1)*int(2.0d0*dx/cell(1))
-      dy = dy - cell(2)*int(2.0d0*dy/cell(2))
-      dz = dz - cell(3)*int(2.0d0*dz/cell(3))
+      dx = dx - cell(1)*int(2.0*dx/cell(1))
+      dy = dy - cell(2)*int(2.0*dy/cell(2))
+      dz = dz - cell(3)*int(2.0*dz/cell(3))
 
     end subroutine bond_constraint
 !
@@ -74,21 +76,16 @@ module libs
     subroutine vdw
       implicit none
       integer :: i, j 
-      real(8) :: depot, epot, fr, dx, dy, dz, dr, vel_max
+      real(8) :: depot, epot, fr, dx, dy, dz, dr
       
-!      vel_max = 0.d0
-!      do i = 1, natom 
-!        vel_max = max(vel_max, sqrt(vx(i)**2+vy(i)**2+vz(i)**2)
-!      end do 
-!      if (vel_max*timestep.ge.params(3)) then
-        call neighbour_list
-!      end if 
+      call neighbour_list
 
       do i = 1, natom-1
         do j = 1, nlist(i)
           dx = rx(ilist(i,j))-rx(i)
           dy = ry(ilist(i,j))-ry(i)
           dz = rz(ilist(i,j))-rz(i)
+          call bond_constraint(dx, dy, dz)
           dr = sqrt(dx**2+dy**2+dz**2)
           depot = (params(2)/dr)**6
           epot = 4.0d0*params(1)*(depot-1.0d0)*depot
@@ -134,13 +131,74 @@ module libs
 
     end subroutine neighbour_list
 !
+!-periodic condition contour
+!
+    subroutine ccp()
+      implicit none
+      integer :: i 
+
+      do i = 1, natom
+        rx(i) = rx(i)-cell(1)*int(rx(i)/cell(1))
+        ry(i) = ry(i)-cell(2)*int(ry(i)/cell(2))
+        rz(i) = rz(i)-cell(3)*int(rz(i)/cell(3))
+      end do 
+
+    end subroutine ccp
+!
+!-Ensemble nvt berendsen
+!
+    subroutine ekinetic_func()
+      implicit none
+      integer :: i 
+      real(8) :: sum
+
+      sum = 0.d0
+      do i = 1, natom
+        sum = sum+mass(i)*(vx(i)**2+vy(i)**2+vz(i)**2)
+      end do
+
+      ekinetic = 0.5d0*sum
+
+    end subroutine ekinetic_func
+!
 !-Ensemble nvt berendsen
 !
     subroutine nvt
       implicit none
       integer :: i 
+      real(8) :: qui
       
-      sigma = 0.5*nfree*KB*temp_bath
+      call forces
+
+      do i = 1, natom 
+        vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+        vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+        vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+        rx(i) = rx(i)+vx(i)*timestep
+        ry(i) = ry(i)+vy(i)*timestep
+        rz(i) = rz(i)+vz(i)*timestep
+      end do 
+
+      call ccp
+
+      call forces
+
+      do i = 1, natom
+        vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+        vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+        vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+      end do 
+
+      call ekinetic_func
+
+      qui = sqrt(1.d0+timestep*(sigma/ekinetic-1.0d0)/tstat)
+
+      do i = 1, natom
+        vx(i) = vx(i)*qui
+        vy(i) = vy(i)*qui
+        vz(i) = vz(i)*qui
+      end do 
 
     end subroutine nvt
+
 end module libs

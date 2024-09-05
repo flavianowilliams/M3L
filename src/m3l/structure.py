@@ -124,9 +124,6 @@ class System(Constants):
             atom[9] = atom[9]*(self.ECONV/self.ACONV)
             atom[10] = atom[10]*self.ECONV
 
-#    def __call__(self, filename):
-#        return self.loadSystem(filename)
-
 class Symmetry(System):
 
     def __init__(self):
