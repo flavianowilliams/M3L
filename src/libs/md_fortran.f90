@@ -65,9 +65,9 @@ module libs
       implicit none
       real(8), intent(inout) :: dx, dy, dz
 
-      dx = dx - cell(1)*int(2.0*dx/cell(1))
-      dy = dy - cell(2)*int(2.0*dy/cell(2))
-      dz = dz - cell(3)*int(2.0*dz/cell(3))
+      dx = dx - cell(1)*aint(2.0*dx/cell(1))
+      dy = dy - cell(2)*aint(2.0*dy/cell(2))
+      dz = dz - cell(3)*aint(2.0*dz/cell(3))
 
     end subroutine bond_constraint
 !
@@ -75,16 +75,17 @@ module libs
 !
     subroutine vdw
       implicit none
-      integer :: i, j 
+      integer :: i, j, nj 
       real(8) :: depot, epot, fr, dx, dy, dz, dr
       
       call neighbour_list
 
       do i = 1, natom-1
         do j = 1, nlist(i)
-          dx = rx(ilist(i,j))-rx(i)
-          dy = ry(ilist(i,j))-ry(i)
-          dz = rz(ilist(i,j))-rz(i)
+          nj = ilist(i,j)
+          dx = rx(nj)-rx(i)
+          dy = ry(nj)-ry(i)
+          dz = rz(nj)-rz(i)
           call bond_constraint(dx, dy, dz)
           dr = sqrt(dx**2+dy**2+dz**2)
           depot = (params(2)/dr)**6
@@ -94,10 +95,10 @@ module libs
           fy(i) = -fr*dy
           fz(i) = -fr*dz
           ea(i) = epot
-          fx(j) = +fr*dx
-          fy(j) = +fr*dy
-          fz(j) = +fr*dz
-          ea(j) = epot
+          fx(nj) = +fr*dx
+          fy(nj) = +fr*dy
+          fz(nj) = +fr*dz
+          ea(nj) = epot
         end do 
       end do 
 
@@ -120,6 +121,7 @@ module libs
           dx = rx(j)-rx(i)
           dy = ry(j)-ry(i)
           dz = rz(j)-rz(i)
+          call bond_constraint(dx, dy, dz)
           dr = sqrt(dx**2+dy**2+dz**2)
           if (dr.le.params(3)) then
             ilist(i, nx) = j
@@ -138,9 +140,9 @@ module libs
       integer :: i 
 
       do i = 1, natom
-        rx(i) = rx(i)-cell(1)*int(rx(i)/cell(1))
-        ry(i) = ry(i)-cell(2)*int(ry(i)/cell(2))
-        rz(i) = rz(i)-cell(3)*int(rz(i)/cell(3))
+        rx(i) = rx(i)-cell(1)*aint(rx(i)/cell(1))
+        ry(i) = ry(i)-cell(2)*aint(ry(i)/cell(2))
+        rz(i) = rz(i)-cell(3)*aint(rz(i)/cell(3))
       end do 
 
     end subroutine ccp
@@ -168,8 +170,6 @@ module libs
       integer :: i 
       real(8) :: qui
       
-      call forces
-
       do i = 1, natom 
         vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
         vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
@@ -198,6 +198,8 @@ module libs
         vy(i) = vy(i)*qui
         vz(i) = vz(i)*qui
       end do 
+
+      call ekinetic_func
 
     end subroutine nvt
 

@@ -112,6 +112,10 @@ class Ensemble(Constants):
         vx = []
         vy = []
         vz = []
+        fx = []
+        fy = []
+        fz = []
+        ea = []
         for atom in self.system.atoms:
             mass.append(Atom().setMass(atom[0]))
             rx.append(atom[1])
@@ -120,6 +124,10 @@ class Ensemble(Constants):
             vx.append(atom[4])
             vy.append(atom[5])
             vz.append(atom[6])
+            fx.append(atom[7])
+            fy.append(atom[8])
+            fz.append(atom[9])
+            ea.append(atom[10])
 
         libs.sigma = 0.5*self.nfree*self.KB*self.temp_bath
         libs.natom = len(self.system.atoms)
@@ -133,9 +141,14 @@ class Ensemble(Constants):
         libs.vx = vx
         libs.vy = vy
         libs.vz = vz
+        libs.fx = fx
+        libs.fy = fy
+        libs.fz = fz
+        libs.ea = ea
         libs.params = self.force_field 
 
         libs.nvt()
+        exit()
 
         for i, atom in enumerate(self.system.atoms):
             atom[1] = np.array(libs.rx[i])
