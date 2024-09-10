@@ -10,6 +10,13 @@ class Optimize(Constants):
 
     def SD(self, system):
 
+        system.temperature = 0.0
+
+        for atom in system.atoms:
+            atom[4] = 0.0
+            atom[5] = 0.0
+            atom[6] = 0.0
+
         ForceField().interaction(system, self.force_field)
 
         for atom in system.atoms:

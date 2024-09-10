@@ -129,7 +129,8 @@ class Ensemble(Constants):
             fz.append(atom[9])
             ea.append(atom[10])
 
-        libs.sigma = 0.5*self.nfree*self.KB*self.temp_bath
+        libs.sigma = 0.5*self.nfree*self.temp_bath
+#        libs.sigma = 0.5*self.nfree*self.KB*self.temp_bath
         libs.natom = len(self.system.atoms)
         libs.timestep = self.timestep
         libs.tstat = self.tstat
@@ -148,7 +149,6 @@ class Ensemble(Constants):
         libs.params = self.force_field 
 
         libs.nvt()
-        exit()
 
         for i, atom in enumerate(self.system.atoms):
             atom[1] = np.array(libs.rx[i])
@@ -162,7 +162,7 @@ class Ensemble(Constants):
             atom[9] = np.array(libs.fz[i])
             atom[10] = np.array(libs.ea[i])
 
-        self.system.temperature = 2.0*libs.ekinetic/(self.KB*self.nfree)#self.setTemperature()
+        self.system.temperature = 2.0*libs.ekinetic/(self.nfree)#self.setTemperature()
 
         return self.system
 
