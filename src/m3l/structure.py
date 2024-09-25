@@ -1,5 +1,7 @@
 import numpy as np
 import json
+
+from numpy._core.multiarray import dtype
 from m3l.utils import Constants
 
 class Atom(Constants):
@@ -35,7 +37,8 @@ class System(Constants):
             self.cell = np.array(json_file['cell'], dtype=np.float32)
             self.atoms = np.array(json_file['atoms'], dtype=np.float32)
             self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float32)
-            self.pressure = np.array(json_file['thermodynamic'][1], dtype=np.float32)
+            self.friction = np.array(json_file['thermodynamic'][1], dtype=np.float32)
+            self.pressure = np.array(json_file['thermodynamic'][2], dtype=np.float32)
 
     def setNAtoms(self):
         self.natoms = len(self.atoms)
@@ -54,6 +57,7 @@ class System(Constants):
     def setSystem(self, temp_ext, press_ext, cell, filename):
 
         self.temperature = np.array(temp_ext)
+        self.friction = np.zeros(1)
         self.pressure = np.array(press_ext)
         self.cell = np.array(cell)
 
@@ -76,7 +80,7 @@ class System(Constants):
 
         dictfile = {
                 'cell': self.cell.tolist(),
-                'thermodynamic': [self.temperature.item(), self.pressure.item()],
+                'thermodynamic': [self.temperature.item(), self.friction.item(), self.pressure.item()],
                 'atoms': self.atoms.tolist()
                 }
 
@@ -87,6 +91,7 @@ class System(Constants):
     def convertUnits(self):
 
         self.temperature = self.temperature/self.TEMPCONV
+        self.friction = self.friction/(self.ECONV*self.TIMECONV/self.MCONV)
 
         self.cell[0] = self.cell[0]/self.ACONV
         self.cell[1] = self.cell[1]/self.ACONV
@@ -107,6 +112,7 @@ class System(Constants):
     def convertUnitsInv(self):
 
         self.temperature = self.temperature*self.TEMPCONV
+        self.friction = self.friction*(self.ECONV*self.TIMECONV/self.MCONV)
 
         self.cell[0] = self.cell[0]*self.ACONV
         self.cell[1] = self.cell[1]*self.ACONV

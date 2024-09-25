@@ -11,6 +11,7 @@ class Optimize(Constants):
     def SD(self, system):
 
         system.temperature = 0.0
+        system.friction = 0.0
 
         for atom in system.atoms:
             atom[4] = 0.0

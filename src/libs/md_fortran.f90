@@ -2,7 +2,7 @@ module libs
   integer :: natom
   integer, allocatable, dimension(:) :: nlist
   integer, allocatable, dimension(:, :) :: ilist
-  real(8) :: timestep, sigma, tstat
+  real(8) :: timestep, sigma, tstat, friction
   real(8) :: ekinetic
   real(8), dimension(3) :: cell
   real(8), allocatable, dimension(:) :: params
@@ -65,9 +65,9 @@ module libs
       implicit none
       real(8), intent(inout) :: dx, dy, dz
 
-      dx = dx - cell(1)*aint(2.0*dx/cell(1))
-      dy = dy - cell(2)*aint(2.0*dy/cell(2))
-      dz = dz - cell(3)*aint(2.0*dz/cell(3))
+      dx = dx - cell(1)*anint(dx/cell(1))
+      dy = dy - cell(2)*anint(dy/cell(2))
+      dz = dz - cell(3)*anint(dz/cell(3))
 
     end subroutine bond_constraint
 !
@@ -140,9 +140,9 @@ module libs
       integer :: i 
 
       do i = 1, natom
-        rx(i) = rx(i)-cell(1)*aint(rx(i)/cell(1))
-        ry(i) = ry(i)-cell(2)*aint(ry(i)/cell(2))
-        rz(i) = rz(i)-cell(3)*aint(rz(i)/cell(3))
+        rx(i) = rx(i)-cell(1)*anint(rx(i)/cell(1))
+        ry(i) = ry(i)-cell(2)*anint(ry(i)/cell(2))
+        rz(i) = rz(i)-cell(3)*anint(rz(i)/cell(3))
       end do 
 
     end subroutine ccp
@@ -202,5 +202,60 @@ module libs
       call ekinetic_func
 
     end subroutine nvt
+
+    subroutine friction_func()
+      implicit none
+
+      friction = friction+0.25d0*timestep*(ekinetic-sigma)/(sigma*tstat**2)
+
+    end subroutine friction_func
+
+    subroutine nvt_hoover
+      implicit none
+      integer :: i 
+      
+      call ekinetic_func
+      call friction_func
+
+      do i = 1, natom 
+        vx(i) = vx(i)*exp(-0.5d0*timestep*friction)
+        vy(i) = vy(i)*exp(-0.5d0*timestep*friction)
+        vz(i) = vz(i)*exp(-0.5d0*timestep*friction)
+      end do 
+
+      call ekinetic_func
+      call friction_func
+
+      do i = 1, natom
+        vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+        vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+        vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+        rx(i) = rx(i)+vx(i)*timestep
+        ry(i) = ry(i)+vy(i)*timestep
+        rz(i) = rz(i)+vz(i)*timestep
+      end do 
+
+      call ccp
+      call forces
+
+      do i = 1, natom
+        vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+        vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+        vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+      end do 
+
+      call ekinetic_func
+      call friction_func
+
+      do i = 1, natom
+        vx(i) = vx(i)*exp(-0.5d0*timestep*friction)
+        vy(i) = vy(i)*exp(-0.5d0*timestep*friction)
+        vz(i) = vz(i)*exp(-0.5d0*timestep*friction)
+      end do 
+
+      call ekinetic_func
+      call friction_func
+
+    end subroutine nvt_hoover
 
 end module libs

@@ -134,6 +134,7 @@ class Ensemble(Constants):
         libs.natom = len(self.system.atoms)
         libs.timestep = self.timestep
         libs.tstat = self.tstat
+        libs.friction = self.system.friction
         libs.cell = self.system.cell
         libs.mass = mass
         libs.rx = rx
@@ -163,6 +164,7 @@ class Ensemble(Constants):
             atom[10] = np.array(libs.ea[i])
 
         self.system.temperature = 2.0*libs.ekinetic/(self.nfree)#self.setTemperature()
+        self.system.friction = libs.friction
 
         return self.system
 
