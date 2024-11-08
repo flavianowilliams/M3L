@@ -1,0 +1,68 @@
+@startuml M3L
+package utils{
+    class Conversion{
+        KB: float
+        N0: float
+        A0: float
+        HARTREE: float
+        ELECTRON_MASS: float
+        PERIOD_BOHR: float
+        ACONV: float
+        MCONV: float
+        ECONV: float
+        TIMECONV: float
+        TEMPCONV: float
+    }
+  }
+package molecular_dynamics{
+    class MolecularDynamics{
+        nstep: integer
+        frames: integer
+        kinetic_energy: float
+        temperature: float
+        convertUnits()
+        running()
+        setFrame()
+        setVelocit()
+        setKineticEnergy()
+        setTemperature()
+    }
+    class Integration{
+        timestep: float
+        nve()
+    }
+    class ForceField{
+  }
+}
+package structure{
+    class System{
+      natom: integer
+      acell: float
+      bcell: float
+      ccell: float
+      volume: float
+      temperature: float
+      pressure: float
+      loadAtoms()
+      setNatom()
+      setVolume()
+      ccp()
+      setMass()
+    }
+    class Atom{
+        atoms: list
+        setAtom()
+  }
+    class Symmetry{
+      eta_prm: float
+      rs_prm: float
+      s2: float
+      setSym2D()
+    }
+}
+Conversion <|-- Atom
+Integration o-- ForceField
+MolecularDynamics <|-- Integration
+System <|-- Integration
+Atom <|-- System
+@enduml

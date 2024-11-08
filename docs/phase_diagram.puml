@@ -1,0 +1,147 @@
+@startuml M3L
+package utils{
+    class Constants{
+        KB: float
+        N0: float
+        A0: float
+        HARTREE: float
+        ELECTRON_MASS: float
+        PERIOD_BOHR: float
+        ACONV: float
+        MCONV: float
+        ECONV: float
+        TIMECONV: float
+        TEMPCONV: float
+    }
+  }
+package molecular_dynamics{
+    class Ensemble{
+        timestep: float
+        force_field: float
+        temp_bath: float
+        press_bath: float
+        tstat: float
+        nve_verlet()
+        nvt_verlet()
+    }
+    class ForceField{
+        params[]: float
+        r_cutoff: float
+        parameters()
+        interaction()
+  }
+}
+package structure{
+    class System{
+      cell[]: float
+      temperature: float
+      friction: float
+      pressure: float
+      epotential: float
+      ekinetic: float
+      atoms[]: float
+      loadSystem()
+      setNatom()
+      setSystem()
+      convertUnits()
+      convertUnitsInv()
+      save()
+    }
+    class System2{
+      cell[]: float
+      temperature: float
+      friction: float
+      pressure: float
+      epotential: float
+      ekinetic: float
+      atoms[]: float
+      convertUnits()
+      convertUnitsInv()
+      save()
+    }
+    class Atom{
+        atoms: list
+        setMass()
+        setZNumber()
+        setNatoms()
+        setVelocity()
+        setSystem()
+        save()
+        convertUnits()
+        convertUnitsInv()
+    }
+}
+package optimize{
+    class Optimize{
+        force_field[]: float
+        learning_rate: float
+        SD()
+        ccp()
+    }
+}
+package statistics{
+    class MonteCarlo{
+        ntrial: integer
+        naccpt: integer
+        nadjst: integer
+        force_field[]: float
+        temp_ext: float
+        drmax: float
+        dvmax: float
+        celln[]: float
+        rx[]: float
+        ry[]: float
+        rz[]: float
+        metropolis()
+        setDrmax()
+        setCoordinates()
+        energy()
+        hook()
+        hook_output()
+    }
+}
+package md_fortran{
+    class Libs{
+      natom: integer
+      nlist[]: integer
+      ilist[]: integer
+      timestep: float
+      sigma: float
+      tstat: float
+      friction: float
+      ekinetic: float
+      cell[]: float
+      params[]: float
+      mass[]: float
+      rx[]: float
+      ry[]: float
+      rz[]: float
+      vx[]: float
+      vy[]: float
+      vz[]: float
+      fx[]: float
+      fy[]: float
+      fz[]: float
+      ea[]: float
+      forces()
+      bonds()
+      bond_constraint()
+      vdw()
+      neighbour_list()
+      ccp()
+      ekinetic_func()
+      nvt()
+      nvt_hoover()
+      friction_func()
+    }
+}
+Constants <|-- Optimize
+Constants <|-- Atom
+Constants <|-- ForceField
+Constants <|-- Ensemble
+Constants <|-- System
+Constants <|-- MonteCarlo
+Libs o-- ForceField
+Libs o-- Ensemble
+Libs o-- MonteCarlo
+@enduml

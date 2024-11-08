@@ -1,0 +1,23 @@
+[build-system]
+requires = ["scikit-build-core>=0.10.5", "numpy"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "m3l"
+version = "2024.08.dev5"
+authors = [{name = "Flaviano Williams Fernandes", email = "flaviano.fernandes@ifpr.edu.br"}]
+description = "Machine Learning and Molecular Modelling"
+license = {text = "MIT"}
+keywords = ["Machine learning, molecular modelling "]
+requires-python = ">=3.12"
+dependencies = ["numpy", "scipy"]
+
+[project.urls]
+Repository = "https://github.com/flavianowilliams/M3L"
+
+[tool.scikit-build]
+wheel.packages = ["src/m3l"]
+wheel.cmake = true 
+cmake.source-dir = "src/libs"
+ninja.version = ">=1.10"
+cmake.version = ">=3.17.2"
