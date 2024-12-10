@@ -9,7 +9,7 @@ class MonteCarlo(Constants):
     naccpt = 0 
     nadjst = 5
 
-    def __init__(self, temp_ext, drmax, dvmax, force_field):
+    def __init__(self, temp_ext, drmax, dvmax, force_field, **kwargs):
 
         self.force_field = np.array(force_field)
         self.temp_ext = np.array(temp_ext)
@@ -19,6 +19,7 @@ class MonteCarlo(Constants):
         self.rx = []
         self.ry = []
         self.rz = []
+        self.nadjst = kwargs['nadjst']
 
     def metropolis(self):
 
@@ -30,8 +31,8 @@ class MonteCarlo(Constants):
 
         if de < 0.0:
 
-            for i in range(3):
-                self.cell[i]=self.celln[i]
+#            for i in range(3):
+#                self.cell[i]=self.celln[i]
 
             for i, atom in enumerate(self.atoms):
                 atom[1] = self.rx[i]
@@ -43,8 +44,8 @@ class MonteCarlo(Constants):
             
         elif np.exp(-deltvb) > rnd:
 
-            for i in range(3):
-                self.cell[i]=self.celln[i]
+#            for i in range(3):
+#                self.cell[i]=self.celln[i]
 
             for i, atom in enumerate(self.atoms):
                 atom[1] = self.rx[i]
@@ -74,11 +75,11 @@ class MonteCarlo(Constants):
 
     def setCoordinates(self):
 
-        rnd = np.random.random_sample()
-        vn = (self.cell[0]*self.cell[1]*self.cell[2])+(2.0*rnd-1.0)*self.dvmax
-
-        for i in range(3):
-            self.celln[i] = vn**(1.0/3.0)
+#        rnd = np.random.random_sample()
+#        vn = (self.cell[0]*self.cell[1]*self.cell[2])+(2.0*rnd-1.0)*self.dvmax
+#
+#        for i in range(3):
+#            self.celln[i] = vn**(1.0/3.0)
 
         self.rx.clear()
         self.ry.clear()
@@ -87,7 +88,9 @@ class MonteCarlo(Constants):
         for atom in self.atoms:
             rnd = np.random.random_sample()
             self.rx.append(atom[1]+self.drmax*(2.0*rnd-1.0))
+            rnd = np.random.random_sample()
             self.ry.append(atom[2]+self.drmax*(2.0*rnd-1.0))
+            rnd = np.random.random_sample()
             self.rz.append(atom[3]+self.drmax*(2.0*rnd-1.0))
 
     def energy(self):
