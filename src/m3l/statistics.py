@@ -9,10 +9,11 @@ class MonteCarlo(Constants):
     naccpt = 0 
     nadjst = 5
 
-    def __init__(self, temp_ext, drmax, dvmax, force_field, **kwargs):
+    def __init__(self, temp_ext, press_ext, drmax, dvmax, force_field, **kwargs):
 
         self.force_field = np.array(force_field)
         self.temp_ext = np.array(temp_ext)
+        self.press_ext = np.array(press_ext)
         self.drmax = np.array(drmax)
         self.dvmax = np.array(dvmax)
         self.celln = np.zeros(3)
@@ -27,12 +28,16 @@ class MonteCarlo(Constants):
         deltvb = de/(self.KB*self.temp_ext)
         rnd = np.random.random_sample()
 
+        volm = self.cell[0]*self.cell[1]*self.cell[2]
+        voln = self.celln[0]*self.celln[1]*self.celln[2]
+        deltvol = voln-volm
+
         self.setDrmax()
 
         if de < 0.0:
 
-#            for i in range(3):
-#                self.cell[i]=self.celln[i]
+            for i in range(3):
+                self.cell[i]=self.celln[i]
 
             for i, atom in enumerate(self.atoms):
                 atom[1] = self.rx[i]
@@ -42,10 +47,10 @@ class MonteCarlo(Constants):
             self.epotential += de
             self.naccpt += 1
             
-        elif np.exp(-deltvb) > rnd:
+        elif np.exp(-(deltvb+self.press_ext*deltvol)) > rnd:
 
-#            for i in range(3):
-#                self.cell[i]=self.celln[i]
+            for i in range(3):
+                self.cell[i]=self.celln[i]
 
             for i, atom in enumerate(self.atoms):
                 atom[1] = self.rx[i]
@@ -75,11 +80,11 @@ class MonteCarlo(Constants):
 
     def setCoordinates(self):
 
-#        rnd = np.random.random_sample()
-#        vn = (self.cell[0]*self.cell[1]*self.cell[2])+(2.0*rnd-1.0)*self.dvmax
-#
-#        for i in range(3):
-#            self.celln[i] = vn**(1.0/3.0)
+        rnd = np.random.random_sample()
+        vn = (self.cell[0]*self.cell[1]*self.cell[2])+(2.0*rnd-1.0)*self.dvmax
+
+        for i in range(3):
+            self.celln[i] = vn**(1.0/3.0)
 
         self.rx.clear()
         self.ry.clear()

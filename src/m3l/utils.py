@@ -16,14 +16,17 @@ class Constants():
     ECONV = 1.438689e20                        # Joule => kcal/mol
     MCONV = 1000*N0                            # kilogram => molar mass
     TIMECONV = 1.0e12                          # second => picosecond
+    PCONV = 9.8692e-6                          # Pascal => atm 
 
     # Conversion from input to atomic unit
     ACONV = np.array(ACONV*A0)                 # angstrom => a0
     ECONV = np.array(ECONV*HARTREE)            # kcal/mol => Hartree
     MCONV = np.array(MCONV*ELECTRON_MASS)      # molar mass => amu
     TIMECONV = np.array(TIMECONV*PERIOD_BOHR)  # picosecond => electron time revolution
+    PCONV = np.array(PCONV*HARTREE/A0**3)      # atm => Hartree/a0**3
 
     # Other conversion
     KB = np.array(KB/HARTREE)                  # J/K => Hartree/K
     TEMPCONV = np.array(1.0e0)
 #    TEMPCONV = np.array(HARTREE/KB)
+
