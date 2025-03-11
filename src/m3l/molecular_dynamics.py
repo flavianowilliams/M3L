@@ -140,11 +140,17 @@ class Ensemble(Constants):
             atom[8] = np.array(libs.fy[i])
             atom[9] = np.array(libs.fz[i])
             atom[10] = np.array(libs.ea[i])
+            fmax = np.sqrt(atom[7]**2+atom[8]**2+atom[9]**2)
+            if fmax >= 1.e1000:
+                print(f'Aviso: Força máxima excedeu em {fmax}')
 
         self.temperature = 2.0*libs.ekinetic/(self.KB*self.nfree)
         self.friction = libs.friction
         self.ekinetic = libs.ekinetic
         self.epotential = libs.energy
+
+#        if self.epotential*self.ECONV >= 1.e10:
+#            print(f'Warning: Potential energy exceeds de value {self.epotential*self.ECONV}')
 
     def hook(self, system):
 

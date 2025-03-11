@@ -38,13 +38,12 @@ module Libs
 !
     subroutine bonds
       implicit none
-      integer :: bnd
       real(8) :: epot, fr, dx, dy, dz, dr 
       
       dx = rx(2)-rx(1)
       dy = ry(2)-ry(1)
       dz = rz(2)-rz(1)
-      call bond_constraint(dx, dy, dz)
+      call mic(dx, dy, dz)
       dr = sqrt(dx**2+dy**2+dz**2)
       epot = 0.5d0*params(1)*(dr-params(2))**2
       fr = -1.0d0*params(1)*(dr-params(2))/dr
@@ -61,22 +60,22 @@ module Libs
 !
 !- Bond constraint rules
 !
-    subroutine bond_constraint(dx, dy, dz)
+    subroutine mic(dx, dy, dz)
       implicit none
       real(8), intent(inout) :: dx, dy, dz
 
-      dx = dx - cell(1)*anint(dx/cell(1))
-      dy = dy - cell(2)*anint(dy/cell(2))
-      dz = dz - cell(3)*anint(dz/cell(3))
+      dx = dx - cell(1)*nint(dx/cell(1))
+      dy = dy - cell(2)*nint(dy/cell(2))
+      dz = dz - cell(3)*nint(dz/cell(3))
 
-    end subroutine bond_constraint
+    end subroutine mic
 !
 !- Intermolecular interaction
 !
     subroutine vdw
       implicit none
       integer :: i, j, nj 
-      real(8) :: depot, epot, fr, dx, dy, dz, dr
+      real(8) :: depot, epot, fr, dx, dy, dz, dr 
       
       call neighbour_list
 
@@ -87,7 +86,7 @@ module Libs
           dx = rx(nj)-rx(i)
           dy = ry(nj)-ry(i)
           dz = rz(nj)-rz(i)
-          call bond_constraint(dx, dy, dz)
+          call mic(dx, dy, dz)
           dr = sqrt(dx**2+dy**2+dz**2)
           depot = (params(2)/dr)**6
           epot = 4.0d0*params(1)*(depot-1.0d0)*depot
@@ -101,10 +100,11 @@ module Libs
           fz(nj) = +fr*dz
           ea(nj) = epot
           energy = energy+epot
-        end do 
+!          if(dr*0.53.le.3.5)print*, dr*0.53, i, nj, ilist(i, j) 
+        end do
       end do 
 
-    end subroutine vdw
+end subroutine vdw
 !
 !-Neighbours list subroutine function
 !
@@ -114,21 +114,24 @@ module Libs
       real(8) :: dx, dy, dz, dr
 
       if (allocated(nlist).eqv..FALSE.) then
-        allocate(nlist(natom-1), ilist(natom-1, natom-1))
+        allocate(nlist(natom), ilist(natom, natom))
       end if 
 
-      do i = 1, natom-1
+      do i = 1, natom
         nx = 1
-        do j = i+1, natom
-          dx = rx(j)-rx(i)
-          dy = ry(j)-ry(i)
-          dz = rz(j)-rz(i)
-          call bond_constraint(dx, dy, dz)
-          dr = sqrt(dx**2+dy**2+dz**2)
-          if (dr.le.params(3)) then
-            ilist(i, nx) = j
-            nx = nx+1
+        do j = 1, natom
+          if (i.ne.j)then
+            dx = rx(j)-rx(i)
+            dy = ry(j)-ry(i)
+            dz = rz(j)-rz(i)
+            call mic(dx, dy, dz)
+            dr = sqrt(dx**2+dy**2+dz**2)
+            if (dr.le.params(3)) then
+              ilist(i, nx) = j
+              nx = nx+1
+            end if 
           end if 
+!          if(i.eq.ilist(i, nx-1))print*, i, ilist(i, nx-1)
         end do
         nlist(i) = nx-1
       end do
@@ -142,9 +145,9 @@ module Libs
       integer :: i 
 
       do i = 1, natom
-        rx(i) = rx(i)-cell(1)*anint(rx(i)/cell(1))
-        ry(i) = ry(i)-cell(2)*anint(ry(i)/cell(2))
-        rz(i) = rz(i)-cell(3)*anint(rz(i)/cell(3))
+        rx(i) = rx(i)-cell(1)*int(rx(i)/cell(1))
+        ry(i) = ry(i)-cell(2)*int(ry(i)/cell(2))
+        rz(i) = rz(i)-cell(3)*int(rz(i)/cell(3))
       end do 
 
     end subroutine ccp

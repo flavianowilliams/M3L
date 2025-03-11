@@ -20,4 +20,4 @@ wheel.packages = ["src/m3l"]
 wheel.cmake = true 
 cmake.source-dir = "src/libs"
 ninja.version = ">=1.10"
-cmake.version = ">=3.17.2"
+cmake.version = ">=3.30.1"

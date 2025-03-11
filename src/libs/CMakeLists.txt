@@ -1,40 +1,45 @@
-cmake_minimum_required(VERSION 3.17.2...3.29)
+# definindo versão mínima do cmake 
+cmake_minimum_required(VERSION 3.30.1)
 
+# definindo nome do projeto
 project(${SKBUILD_PROJECT_NAME} LANGUAGES C Fortran)
 
+# definindo nome do target principal
 set(filename "md_fortran")
 
-message("Carregando interpretador python e módulos Module e Numpy!!!!")
-
+#
 find_package(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
-message("OK!")
-message("Definindo diretório do arquivo fortranobject.c como pré-requisito para compilação do módulo.")
-
-# F2PY headers
+#
 execute_process(
   COMMAND "${PYTHON_EXECUTABLE}" -c "import numpy.f2py; print(numpy.f2py.get_include())"
   OUTPUT_VARIABLE F2PY_INCLUDE_DIR
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
+# adicionando biblioteca fortranobject
 add_library(fortranobject OBJECT "${F2PY_INCLUDE_DIR}/fortranobject.c")
+
+# linkando biblioteca NumPy no target fortranobject
 target_link_libraries(fortranobject PUBLIC Python::NumPy)
+
+# incluindo diretório dos headers em fortranobject
 target_include_directories(fortranobject PUBLIC "${F2PY_INCLUDE_DIR}")
+
+# configurando propriedades no target fortranobject
 set_property(TARGET fortranobject PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-message("OK!")
-message("Gerando arquivos ${filename}module.c e ${filename}-f2pwrappers2.f90 como pré-requisito para compilação do módulo.")
+# setando instruções para o compilador fortran 
+set(CMAKE_Fortran_COMPILER "gfortran")
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fcheck=all -Wall" CACHE STRING "" FORCE)
 
+#aplicando comando customizado para gerar as saídas md_fortranmodule.c e md_fortran-f2pywrappers2.f90
 add_custom_command(
   OUTPUT ${filename}module.c ${filename}-f2pywrappers2.f90
   DEPENDS ${filename}.f90
   VERBATIM
   COMMAND "${PYTHON_EXECUTABLE}" -m numpy.f2py "${CMAKE_CURRENT_SOURCE_DIR}/${filename}.f90" -m ${filename} --lower
 )
-
-message("OK!")
-message("Criando a biblioteca * em Python::Module")
 
 python_add_library(
   ${filename} MODULE
@@ -44,9 +49,8 @@ python_add_library(
   WITH_SOABI
 )
 
+# linkando a biblioteca fortranobject no target filename
 target_link_libraries(${filename} PRIVATE fortranobject)
 
-message("OK!")
-message("Gerando as regras de instalação para os alvos pré-definidos.")
-
+# instalando target filename na pasta local -- necessário o comando make install
 install(TARGETS ${filename} DESTINATION .)
