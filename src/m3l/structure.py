@@ -13,7 +13,7 @@ class Atom(Constants):
         elif int(zatom) == 18:
             mass = 39.948
 
-        return mass/self.MCONV
+        return mass*self.MCONV
 
     def setZNumber(self, atom):
         
@@ -40,26 +40,27 @@ class System2(Constants):
 
     def convertUnitsInv(self):
 
-        self.epotential = self.epotential*self.ECONV
-        self.ekinetic = self.ekinetic*self.ECONV
-        self.temperature = self.temperature*self.TEMPCONV
-        self.friction = self.friction*(self.ECONV*self.TIMECONV/self.MCONV)
+        self.epotential = self.epotential/self.ECONV
+        self.ekinetic = self.ekinetic/self.ECONV
+        self.temperature = self.temperature/self.TEMPCONV
+        self.friction = self.friction/(self.ECONV*self.TIMECONV/self.MCONV)
+        self.pressure = self.pressure/self.PCONV
 
-        self.cell[0] = self.cell[0]*self.ACONV
-        self.cell[1] = self.cell[1]*self.ACONV
-        self.cell[2] = self.cell[2]*self.ACONV
+        self.cell[0] = self.cell[0]/self.ACONV
+        self.cell[1] = self.cell[1]/self.ACONV
+        self.cell[2] = self.cell[2]/self.ACONV
 
         for atom in self.atoms:
-            atom[1] = atom[1]*self.ACONV
-            atom[2] = atom[2]*self.ACONV
-            atom[3] = atom[3]*self.ACONV
-            atom[4] = atom[4]*(self.ACONV/self.TIMECONV)
-            atom[5] = atom[5]*(self.ACONV/self.TIMECONV)
-            atom[6] = atom[6]*(self.ACONV/self.TIMECONV)
-            atom[7] = atom[7]*(self.ECONV/self.ACONV)
-            atom[8] = atom[8]*(self.ECONV/self.ACONV)
-            atom[9] = atom[9]*(self.ECONV/self.ACONV)
-            atom[10] = atom[10]*self.ECONV
+            atom[1] = atom[1]/self.ACONV
+            atom[2] = atom[2]/self.ACONV
+            atom[3] = atom[3]/self.ACONV
+            atom[4] = atom[4]/(self.ACONV/self.TIMECONV)
+            atom[5] = atom[5]/(self.ACONV/self.TIMECONV)
+            atom[6] = atom[6]/(self.ACONV/self.TIMECONV)
+            atom[7] = atom[7]/(self.ECONV/self.ACONV)
+            atom[8] = atom[8]/(self.ECONV/self.ACONV)
+            atom[9] = atom[9]/(self.ECONV/self.ACONV)
+            atom[10] = atom[10]/self.ECONV
 
     def save(self, filename = 'system.json'):
 
@@ -136,29 +137,6 @@ class System(Constants):
 
     def convertUnits(self):
 
-        self.epotential = self.epotential/self.ECONV
-        self.ekinetic = self.ekinetic/self.ECONV
-        self.temperature = self.temperature/self.TEMPCONV
-        self.friction = self.friction/(self.ECONV*self.TIMECONV/self.MCONV)
-
-        self.cell[0] = self.cell[0]/self.ACONV
-        self.cell[1] = self.cell[1]/self.ACONV
-        self.cell[2] = self.cell[2]/self.ACONV
-
-        for atom in self.atoms:
-            atom[1] = atom[1]/self.ACONV
-            atom[2] = atom[2]/self.ACONV
-            atom[3] = atom[3]/self.ACONV
-            atom[4] = atom[4]/(self.ACONV/self.TIMECONV)
-            atom[5] = atom[5]/(self.ACONV/self.TIMECONV)
-            atom[6] = atom[6]/(self.ACONV/self.TIMECONV)
-            atom[7] = atom[7]/(self.ECONV/self.ACONV)
-            atom[8] = atom[8]/(self.ECONV/self.ACONV)
-            atom[9] = atom[9]/(self.ECONV/self.ACONV)
-            atom[10] = atom[10]/self.ECONV
-
-    def convertUnitsInv(self):
-
         self.epotential = self.epotential*self.ECONV
         self.ekinetic = self.ekinetic*self.ECONV
         self.temperature = self.temperature*self.TEMPCONV
@@ -179,6 +157,30 @@ class System(Constants):
             atom[8] = atom[8]*(self.ECONV/self.ACONV)
             atom[9] = atom[9]*(self.ECONV/self.ACONV)
             atom[10] = atom[10]*self.ECONV
+
+    def convertUnitsInv(self):
+
+        self.epotential = self.epotential/self.ECONV
+        self.ekinetic = self.ekinetic/self.ECONV
+        self.temperature = self.temperature/self.TEMPCONV
+        self.friction = self.friction/(self.ECONV*self.TIMECONV/self.MCONV)
+        self.pressure = self.pressure/self.PCONV
+
+        self.cell[0] = self.cell[0]/self.ACONV
+        self.cell[1] = self.cell[1]/self.ACONV
+        self.cell[2] = self.cell[2]/self.ACONV
+
+        for atom in self.atoms:
+            atom[1] = atom[1]/self.ACONV
+            atom[2] = atom[2]/self.ACONV
+            atom[3] = atom[3]/self.ACONV
+            atom[4] = atom[4]/(self.ACONV/self.TIMECONV)
+            atom[5] = atom[5]/(self.ACONV/self.TIMECONV)
+            atom[6] = atom[6]/(self.ACONV/self.TIMECONV)
+            atom[7] = atom[7]/(self.ECONV/self.ACONV)
+            atom[8] = atom[8]/(self.ECONV/self.ACONV)
+            atom[9] = atom[9]/(self.ECONV/self.ACONV)
+            atom[10] = atom[10]/self.ECONV
 
     def save(self, filename = 'system.json'):
 

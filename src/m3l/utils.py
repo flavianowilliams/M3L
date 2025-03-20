@@ -11,22 +11,29 @@ class Constants():
     ELECTRON_MASS = cte.value('atomic unit of mass')
     PERIOD_BOHR = cte.value('atomic unit of time')
 
-    # Conversion from SI to input units
-    ACONV = 1.0e10                             # metre => angstrom
-    ECONV = 1.438689e20                        # Joule => kcal/mol
-    MCONV = 1000*N0                            # kilogram => molar mass
-    TIMECONV = 1.0e12                          # second => picosecond
-    PCONV = 9.8692e-6                          # Pascal => atm 
+    # Conversion from input units to SI 
+    ACONV = 1.0e-10                            # angstrom => metre 
+    ECONV = 6.95e-21                           # kcal/mol => Joule 
+    MCONV = 1.0/(1000*N0)                      # amu => kilogram 
+    TIMECONV = 1.0e-12                         # picosecond => second 
+    PCONV = 101325                             # atm => Pascal
 
     # Conversion from input to atomic unit
-    ACONV = np.array(ACONV*A0)                 # angstrom => a0
-    ECONV = np.array(ECONV*HARTREE)            # kcal/mol => Hartree
-    MCONV = np.array(MCONV*ELECTRON_MASS)      # molar mass => amu
-    TIMECONV = np.array(TIMECONV*PERIOD_BOHR)  # picosecond => electron time revolution
-    PCONV = np.array(PCONV*HARTREE/A0**3)      # atm => Hartree/a0**3
+    ACONV = np.array(ACONV/A0)                 # metre => a0
+    ECONV = np.array(ECONV/HARTREE)            # Joule => Hartree
+    MCONV = np.array(MCONV/ELECTRON_MASS)      # kilogram => electron mass 
+    TIMECONV = np.array(TIMECONV/PERIOD_BOHR)  # second => electron time revolution
+    PCONV = np.array(PCONV/(HARTREE/A0**3))    # Pascal => Hartree/a0**3
 
     # Other conversion
     KB = np.array(KB/HARTREE)                  # J/K => Hartree/K
-    TEMPCONV = np.array(1.0e0)
-#    TEMPCONV = np.array(HARTREE/KB)
+    TEMPCONV = KB 
+    KB = np.array(1.0)                  # J/K => Hartree/K
 
+    # Inverted conversion
+
+    PCONVINV = 1.0e0/PCONV                     # atm^-1
+
+    # Some important constants
+
+    BETAFACTOR = 5.0e-5                        # Isothermal compressibility of liquid water (atm)

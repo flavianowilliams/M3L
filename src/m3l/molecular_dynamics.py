@@ -50,14 +50,23 @@ class ForceField(Constants):
 
 class Ensemble(Constants):
 
-    def __init__(self, temp_bath, press_bath, timestep, force_field, tstat = None):
+    def __init__(self, temp_bath, press_bath, timestep, force_field, tstat = None, pstat = None, bfactor = None):
 
-        self.timestep = np.array(timestep)
+        self.timestep = np.array(timestep*self.TIMECONV)
+        self.dtimestep = np.array(timestep*self.TIMECONV)
         self.force_field = force_field
-        self.temp_bath = np.array(temp_bath)
-        self.press_bath = np.array(press_bath)
-        self.tstat = np.array(tstat)
+        self.temp_bath = np.array(temp_bath*self.TEMPCONV)
+        self.press_bath = np.array(press_bath*self.PCONV)
+        self.tstat = np.array(tstat*self.TIMECONV)
+        self.pstat = np.array(pstat*self.TIMECONV)
+
+        if bfactor:
+            self.bfactor = np.array(bfactor)
+        else:
+            self.bfactor = self.BETAFACTOR
     
+        self.bfactor = self.bfactor*self.PCONVINV
+
     def nve_verlet(self):
 
         print("não valendo...")
@@ -140,17 +149,94 @@ class Ensemble(Constants):
             atom[8] = np.array(libs.fy[i])
             atom[9] = np.array(libs.fz[i])
             atom[10] = np.array(libs.ea[i])
-            fmax = np.sqrt(atom[7]**2+atom[8]**2+atom[9]**2)
-            if fmax >= 1.e1000:
-                print(f'Aviso: Força máxima excedeu em {fmax}')
 
-        self.temperature = 2.0*libs.ekinetic/(self.KB*self.nfree)
+        self.temperature = libs.temperature
         self.friction = libs.friction
         self.ekinetic = libs.ekinetic
         self.epotential = libs.energy
 
 #        if self.epotential*self.ECONV >= 1.e10:
 #            print(f'Warning: Potential energy exceeds de value {self.epotential*self.ECONV}')
+
+    def npt_verlet(self):
+
+        mass = []
+        rx = []
+        ry = []
+        rz = []
+        vx = []
+        vy = []
+        vz = []
+        fx = []
+        fy = []
+        fz = []
+        ea = []
+        for atom in self.atoms:
+            mass.append(Atom().setMass(atom[0]))
+            rx.append(atom[1])
+            ry.append(atom[2])
+            rz.append(atom[3])
+            vx.append(atom[4])
+            vy.append(atom[5])
+            vz.append(atom[6])
+            fx.append(atom[7])
+            fy.append(atom[8])
+            fz.append(atom[9])
+            ea.append(atom[10])
+
+        libs.sigma = 0.5*self.nfree*self.KB*self.temp_bath
+        libs.natom = len(self.atoms)
+        libs.timestep = self.dtimestep
+        libs.bfactor = self.bfactor
+        libs.tstat = self.tstat
+        libs.pstat = self.pstat
+        libs.press_bath = self.press_bath
+        libs.friction = self.friction
+        libs.cell = self.cell
+        libs.mass = mass
+        libs.rx = rx
+        libs.ry = ry
+        libs.rz = rz
+        libs.vx = vx
+        libs.vy = vy
+        libs.vz = vz
+        libs.fx = fx
+        libs.fy = fy
+        libs.fz = fz
+        libs.ea = ea
+        libs.params = self.force_field 
+
+        libs.npt_berendsen()
+
+        self.cell[0] = libs.cell[0]
+        self.cell[1] = libs.cell[1]
+        self.cell[2] = libs.cell[2]
+        
+        for i, atom in enumerate(self.atoms):
+            atom[1] = np.array(libs.rx[i])
+            atom[2] = np.array(libs.ry[i])
+            atom[3] = np.array(libs.rz[i])
+            atom[4] = np.array(libs.vx[i])
+            atom[5] = np.array(libs.vy[i])
+            atom[6] = np.array(libs.vz[i])
+            atom[7] = np.array(libs.fx[i])
+            atom[8] = np.array(libs.fy[i])
+            atom[9] = np.array(libs.fz[i])
+            atom[10] = np.array(libs.ea[i])
+
+        self.temperature = libs.temperature
+        self.pressure = libs.pressure
+        self.ekinetic = libs.ekinetic
+        self.epotential = libs.energy
+
+#        self.setTimestep(libs.drmax)
+#
+#    def setTimestep(self, drmax):
+#
+#        if drmax >= 0.5*self.ACONV:
+#            self.dtimestep = 0.95*self.dtimestep
+#        else:
+#            self.dtimestep = self.timestep
 
     def hook(self, system):
 
@@ -185,8 +271,10 @@ class Ensemble(Constants):
         self.hook(system)
         if self.tstat:
             self.nvt_verlet()
+            if self.pstat:
+                self.npt_verlet()
         else:
             self.nve_verlet()
         output = self.hook_output()
-        return output
+        return output 
 

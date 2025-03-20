@@ -18,6 +18,6 @@ Repository = "https://github.com/flavianowilliams/M3L"
 [tool.scikit-build]
 wheel.packages = ["src/m3l"]
 wheel.cmake = true 
-cmake.source-dir = "src/libs"
+cmake.source-dir = "src/fortran"
 ninja.version = ">=1.10"
 cmake.version = ">=3.30.1"

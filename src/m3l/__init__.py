@@ -1,1 +1,1 @@
-from md_fortran import libs
+from python_fortran import libs
