@@ -5,42 +5,35 @@ from m3l import libs
 
 class ForceField(Constants):
 
-    params = []
-    r_cutoff = np.array(0.0)
+    params = np.array([])
 
-    def parameters(self, args):
+    def van_der_waals(self, vars_):
 
         prms = []
-        for list_ in args:
+        for list_ in vars_:
             prms.append(list_)
 
-        self.params = np.array(prms)
-    
+        if self.params.size > 0:
+            self.params = np.concatenate((self.params, [prms]))
+        else:
+            self.params = np.array([prms])
+
     def interaction(self, system, params):
 
-        rx = []
-        ry = []
-        rz = []
-        for atom in system.atoms:
-            rx.append(atom[1])
-            ry.append(atom[2])
-            rz.append(atom[3])
-
-        libs.rx = rx
-        libs.ry = ry
-        libs.rz = rz
-        libs.natom = len(system.atoms)
+        libs.rx = system.rx
+        libs.ry = system.ry
+        libs.rz = system.rz
+        libs.natom = len(system.zat)
         libs.cell = system.cell
         libs.params = params
         libs.forces()
 
         system.epotential = libs.energy
 
-        for i, atom in enumerate(system.atoms):
-            atom[7] = np.array(libs.fx[i])
-            atom[8] = np.array(libs.fy[i])
-            atom[9] = np.array(libs.fz[i])
-            atom[10] = np.array(libs.ea[i])
+        self.fx = libs.fx 
+        self.fy = libs.fy 
+        self.fz = libs.fz 
+        self.ea = libs.ea 
 
         return system
 
@@ -59,6 +52,7 @@ class Ensemble(Constants):
         self.press_bath = np.array(press_bath*self.PCONV)
         self.tstat = np.array(tstat*self.TIMECONV)
         self.pstat = np.array(pstat*self.TIMECONV)
+        self.friction = 0.e0
 
         if bfactor:
             self.bfactor = np.array(bfactor)
@@ -93,136 +87,46 @@ class Ensemble(Constants):
 
     def nvt_verlet(self):
 
-        mass = []
-        rx = []
-        ry = []
-        rz = []
-        vx = []
-        vy = []
-        vz = []
-        fx = []
-        fy = []
-        fz = []
-        ea = []
-        for atom in self.atoms:
-            mass.append(Atom().setMass(atom[0]))
-            rx.append(atom[1])
-            ry.append(atom[2])
-            rz.append(atom[3])
-            vx.append(atom[4])
-            vy.append(atom[5])
-            vz.append(atom[6])
-            fx.append(atom[7])
-            fy.append(atom[8])
-            fz.append(atom[9])
-            ea.append(atom[10])
-
-        libs.sigma = 0.5*self.nfree*self.KB*self.temp_bath
-        libs.natom = len(self.atoms)
-        libs.timestep = self.timestep
-        libs.tstat = self.tstat
-        libs.friction = self.friction
-        libs.cell = self.cell
-        libs.mass = mass
-        libs.rx = rx
-        libs.ry = ry
-        libs.rz = rz
-        libs.vx = vx
-        libs.vy = vy
-        libs.vz = vz
-        libs.fx = fx
-        libs.fy = fy
-        libs.fz = fz
-        libs.ea = ea
-        libs.params = self.force_field 
-
-        libs.nvt()
-
-        for i, atom in enumerate(self.atoms):
-            atom[1] = np.array(libs.rx[i])
-            atom[2] = np.array(libs.ry[i])
-            atom[3] = np.array(libs.rz[i])
-            atom[4] = np.array(libs.vx[i])
-            atom[5] = np.array(libs.vy[i])
-            atom[6] = np.array(libs.vz[i])
-            atom[7] = np.array(libs.fx[i])
-            atom[8] = np.array(libs.fy[i])
-            atom[9] = np.array(libs.fz[i])
-            atom[10] = np.array(libs.ea[i])
-
-        self.temperature = libs.temperature
-        self.friction = libs.friction
-        self.ekinetic = libs.ekinetic
-        self.epotential = libs.energy
-
-#        if self.epotential*self.ECONV >= 1.e10:
-#            print(f'Warning: Potential energy exceeds de value {self.epotential*self.ECONV}')
+        print("não valendo...")
 
     def npt_verlet(self):
 
-        mass = []
-        rx = []
-        ry = []
-        rz = []
-        vx = []
-        vy = []
-        vz = []
-        fx = []
-        fy = []
-        fz = []
-        ea = []
-        for atom in self.atoms:
-            mass.append(Atom().setMass(atom[0]))
-            rx.append(atom[1])
-            ry.append(atom[2])
-            rz.append(atom[3])
-            vx.append(atom[4])
-            vy.append(atom[5])
-            vz.append(atom[6])
-            fx.append(atom[7])
-            fy.append(atom[8])
-            fz.append(atom[9])
-            ea.append(atom[10])
-
         libs.sigma = 0.5*self.nfree*self.KB*self.temp_bath
-        libs.natom = len(self.atoms)
+        libs.natom = len(self.mat)
         libs.timestep = self.dtimestep
         libs.bfactor = self.bfactor
         libs.tstat = self.tstat
         libs.pstat = self.pstat
         libs.press_bath = self.press_bath
-        libs.friction = self.friction
         libs.cell = self.cell
-        libs.mass = mass
-        libs.rx = rx
-        libs.ry = ry
-        libs.rz = rz
-        libs.vx = vx
-        libs.vy = vy
-        libs.vz = vz
-        libs.fx = fx
-        libs.fy = fy
-        libs.fz = fz
-        libs.ea = ea
+
+        libs.allocate_arrays()
+
         libs.params = self.force_field 
+
+        libs.mass = self.mat 
+        libs.rx = self.rx
+        libs.ry = self.ry
+        libs.rz = self.rz
+        libs.vx = self.vx
+        libs.vy = self.vy
+        libs.vz = self.vz
+        libs.atp = self.atp
 
         libs.npt_berendsen()
 
-        self.cell[0] = libs.cell[0]
-        self.cell[1] = libs.cell[1]
-        self.cell[2] = libs.cell[2]
+        self.cell = libs.cell
         
-        for i, atom in enumerate(self.atoms):
-            atom[1] = np.array(libs.rx[i])
-            atom[2] = np.array(libs.ry[i])
-            atom[3] = np.array(libs.rz[i])
-            atom[4] = np.array(libs.vx[i])
-            atom[5] = np.array(libs.vy[i])
-            atom[6] = np.array(libs.vz[i])
-            atom[7] = np.array(libs.fx[i])
-            atom[8] = np.array(libs.fy[i])
-            atom[9] = np.array(libs.fz[i])
-            atom[10] = np.array(libs.ea[i])
+        self.rx = libs.rx
+        self.ry = libs.ry
+        self.rz = libs.rz
+        self.vx = libs.vx
+        self.vy = libs.vy
+        self.vz = libs.vz
+        self.fx = libs.fx
+        self.fy = libs.fy
+        self.fz = libs.fz
+        self.ea = libs.ea
 
         self.temperature = libs.temperature
         self.pressure = libs.pressure
@@ -240,29 +144,46 @@ class Ensemble(Constants):
 
     def hook(self, system):
 
-        atm = []
-        for atom in system.atoms:
-            atm.append(atom)
-       
-        self.atoms = np.array(atm)
         self.cell = np.array(system.cell)
         self.temperature = np.array(system.temperature)
-        self.friction = np.array(system.friction)
         self.pressure = np.array(system.pressure)
         self.epotential = np.array(system.epotential)
         self.ekinetic = np.array(system.ekinetic)
-        self.nfree = 3*(len(system.atoms)-1)
+        self.nfree = 3*(len(system.mat)-1)
+
+        self.mat = np.array(system.mat)
+        self.atp = np.array(system.atp)
+        self.rx = np.array(system.rx)
+        self.ry = np.array(system.ry)
+        self.rz = np.array(system.rz)
+        self.vx = np.array(system.vx)
+        self.vy = np.array(system.vy)
+        self.vz = np.array(system.vz)
+        self.fx = np.array(system.fx)
+        self.fy = np.array(system.fy)
+        self.fz = np.array(system.fz)
+        self.ea = np.array(system.ea)
 
     def hook_output(self):
 
         context = System2(
                 self.cell,
                 self.temperature,
-                self.friction,
                 self.pressure,
                 self.epotential,
                 self.ekinetic,
-                self.atoms
+                self.mat,
+                self.atp,
+                self.rx,
+                self.ry,
+                self.rz,
+                self.vx,
+                self.vy,
+                self.vz,
+                self.fx,
+                self.fy,
+                self.fz,
+                self.ea,
                 )
 
         return context
@@ -270,9 +191,10 @@ class Ensemble(Constants):
     def __call__(self, system):
         self.hook(system)
         if self.tstat:
-            self.nvt_verlet()
             if self.pstat:
                 self.npt_verlet()
+            else:
+                self.nvt_verlet()
         else:
             self.nve_verlet()
         output = self.hook_output()

@@ -2,10 +2,11 @@ module Libs
   integer natom
   integer, allocatable, dimension(:) :: nlist
   integer, allocatable, dimension(:,:) :: ilist
-  real(8) timestep, sigma, tstat, pstat, friction, bfactor, press_bath
+  integer, allocatable, dimension(:) :: atp
+  real(8) timestep, sigma, tstat, pstat, bfactor, press_bath, friction
   real(8) ekinetic, energy, temperature, pressure, virial, drmax 
   real(8), dimension(3) :: cell
-  real(8), allocatable, dimension(:) :: params
+  real(8), allocatable, dimension(:, :) :: params
   real(8), allocatable, dimension(:) :: mass 
   real(8), allocatable, dimension(:) :: rx, ry, rz 
   real(8), allocatable, dimension(:) :: vx, vy, vz 
@@ -14,13 +15,18 @@ contains
 !
 !-Calculate forces a atomic energy
 !
-  subroutine forces
-    implicit none
-    integer i
+  subroutine allocate_arrays
 
     if (allocated(fx).eqv..FALSE.) then
       allocate(fx(natom), fy(natom), fz(natom), ea(natom))
+      allocate(rx(natom), ry(natom), rz(natom), atp(natom))
     end if
+
+  end subroutine allocate_arrays
+
+  subroutine forces
+    implicit none
+    integer i
 
     do i = 1, natom
       fx(i) = 0.d0
@@ -36,27 +42,27 @@ contains
 !
 !- intramolecular bonds
 !
-  subroutine bonds
-    implicit none
-    real(8) epot, fr, dx, dy, dz, dr 
-    
-    dx = rx(2)-rx(1)
-    dy = ry(2)-ry(1)
-    dz = rz(2)-rz(1)
-    call mic(dx, dy, dz)
-    dr = sqrt(dx**2+dy**2+dz**2)
-    epot = 0.5d0*params(1)*(dr-params(2))**2
-    fr = -1.0d0*params(1)*(dr-params(2))/dr
-    fx(1) = -fr*dx
-    fy(1) = -fr*dy
-    fz(1) = -fr*dz
-    ea(1) = epot
-    fx(2) = +fr*dx
-    fy(2) = +fr*dy
-    fz(2) = +fr*dz
-    ea(2) = epot
-
-  end subroutine bonds
+!  subroutine bonds
+!    implicit none
+!    real(8) epot, fr, dx, dy, dz, dr 
+!    
+!    dx = rx(2)-rx(1)
+!    dy = ry(2)-ry(1)
+!    dz = rz(2)-rz(1)
+!    call mic(dx, dy, dz)
+!    dr = sqrt(dx**2+dy**2+dz**2)
+!    epot = 0.5d0*params(1)*(dr-params(2))**2
+!    fr = -1.0d0*params(1)*(dr-params(2))/dr
+!    fx(1) = -fr*dx
+!    fy(1) = -fr*dy
+!    fz(1) = -fr*dz
+!    ea(1) = epot
+!    fx(2) = +fr*dx
+!    fy(2) = +fr*dy
+!    fz(2) = +fr*dz
+!    ea(2) = epot
+!
+!  end subroutine bonds
 !
 !- Bond constraint rules
 !
@@ -75,25 +81,29 @@ contains
   subroutine vdw
     implicit none
     integer i, j, nj 
-    real(8) depot, epot, fr, dx, dy, dz, dr, dvir
+    real(8) depot, epot, fr, dx, dy, dz, dr, dvir, encorr, vircorr, drmin, prm1, prm2
     
-    call neighbour_list
+!    call neighbour_list
 
     energy = 0.d0
     virial = 0.d0 
     do i = 1, natom-1
       dvir = 0.d0 
       ea(i) = 0.d0
-      do j = 1, nlist(i) 
-        nj = ilist(i,j)
+      do j = i+1, natom
+        nj = j
+        prm1 = sqrt(params(1, 2)*params(1, 2))
+        prm2 = 0.5d0*(params(1, 3)+params(1, 3))
+!      do j = 1, nlist(i) 
+!        nj = ilist(i,j)
         dx = rx(nj)-rx(i)
         dy = ry(nj)-ry(i)
         dz = rz(nj)-rz(i)
         call mic(dx, dy, dz)
-        dr = sqrt(dx**2+dy**2+dz**2)
-        depot = (params(2)/dr)**6
-        epot = 4.0d0*params(1)*(depot-1.0d0)*depot
-        fr = 24.d0*params(1)*(2.d0*depot-1.d0)*depot/dr**2
+        dr = sqrt(dx**2.0d0+dy**2.0d0+dz**2.0d0)
+        depot = (prm2/dr)**6.0d0 
+        epot = 4.0d0*prm1*(depot-1.0d0)*depot
+        fr = 24.d0*prm1*(2.d0*depot-1.d0)*depot/dr**2.0d0 
         fx(i) = fx(i)-fr*dx
         fy(i) = fy(i)-fr*dy
         fz(i) = fz(i)-fr*dz
@@ -101,11 +111,26 @@ contains
         fy(nj) = fy(nj)+fr*dy
         fz(nj) = fz(nj)+fr*dz
         ea(i) = ea(i)+epot
-        dvir = dvir+fr*dr**2
+        dvir = dvir+fr*dr**2.0d0 
       end do
       energy = energy+ea(i)
       virial = virial+dvir
     end do 
+
+    drmin = min(cell(1), cell(2), cell(3))
+    drmin = 0.5*drmin
+
+!    encorr = 4.0d0*params(1, 3)*(params(1, 4)**12/(9.0d0*drmin**9)-params(1, 4)**6/(3.d0*drmin**3)) 
+!    vircorr = -24.0d0*params(1, 3)*(2.0d0*params(1, 4)**12/(9.0d0*drmin**9)-params(1, 4)**6/(3.d0*drmin**3)) 
+!
+!    encorr = 2.0d0*3.141593d0*natom*natom*encorr/(cell(1)*cell(2)*cell(3))
+!    vircorr = 2.0d0*3.141593d0*natom*natom*vircorr/(cell(1)*cell(2)*cell(3))
+
+    encorr = 0.0d0 
+    vircorr = 0.0d0 
+
+    energy = energy+encorr
+    virial = virial+vircorr
 
   end subroutine vdw
 !
@@ -150,9 +175,9 @@ contains
     integer i 
 
     do i = 1, natom
-      rx(i) = rx(i)-cell(1)*int(rx(i)/cell(1))
-      ry(i) = ry(i)-cell(2)*int(ry(i)/cell(2))
-      rz(i) = rz(i)-cell(3)*int(rz(i)/cell(3))
+      rx(i) = rx(i)-cell(1)*nint(rx(i)/cell(1))
+      ry(i) = ry(i)-cell(2)*nint(ry(i)/cell(2))
+      rz(i) = rz(i)-cell(3)*nint(rz(i)/cell(3))
     end do 
 
   end subroutine ccp
@@ -247,12 +272,22 @@ contains
 
   end subroutine nvt
 
-  subroutine friction_func()
+  subroutine friction_func
     implicit none
 
     friction = friction+0.25d0*timestep*(ekinetic-sigma)/(sigma*tstat**2)
 
   end subroutine friction_func
+
+  subroutine eta_func(eta)
+
+    implicit none
+
+    real(8), intent(out) :: eta
+
+    eta = (1.0d0-bfactor*timestep*(press_bath-pressure)/pstat)**(1.0/3.0)
+
+  end subroutine eta_func
 
   subroutine nvt_hoover
     implicit none
@@ -306,9 +341,9 @@ contains
   subroutine npt_berendsen
     implicit none
     integer i
-    real(8) eta, qui 
+    real(8) eta, qui
 
-    eta = (1.0d0-bfactor*timestep*(press_bath-pressure)/pstat)**(1.0/3.0)
+    call eta_func(eta)
 
     do i = 1, natom 
       vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)

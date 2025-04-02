@@ -17,9 +17,9 @@ class MonteCarlo(Constants):
         self.drmax = np.array(drmax)
         self.dvmax = np.array(dvmax)
         self.celln = np.zeros(3)
-        self.rx = []
-        self.ry = []
-        self.rz = []
+        self.rx_new = []
+        self.ry_new = []
+        self.rz_new = []
         self.nadjst = kwargs['nadjst']
 
     def metropolis(self):
@@ -39,10 +39,13 @@ class MonteCarlo(Constants):
             for i in range(3):
                 self.cell[i]=self.celln[i]
 
-            for i, atom in enumerate(self.atoms):
-                atom[1] = self.rx[i]
-                atom[2] = self.ry[i]
-                atom[3] = self.rz[i]
+            self.rx = self.rx_new
+            self.ry = self.ry_new
+            self.rz = self.rz_new
+#            for i, atom in enumerate(self.atoms):
+#                atom[1] = self.rx[i]
+#                atom[2] = self.ry[i]
+#                atom[3] = self.rz[i]
 
             self.epotential += de
             self.naccpt += 1
@@ -52,10 +55,13 @@ class MonteCarlo(Constants):
             for i in range(3):
                 self.cell[i]=self.celln[i]
 
-            for i, atom in enumerate(self.atoms):
-                atom[1] = self.rx[i]
-                atom[2] = self.ry[i]
-                atom[3] = self.rz[i]
+            self.rx = self.rx_new
+            self.ry = self.ry_new
+            self.rz = self.rz_new
+#            for i, atom in enumerate(self.atoms):
+#                atom[1] = self.rx[i]
+#                atom[2] = self.ry[i]
+#                atom[3] = self.rz[i]
 
             self.epotential += de
             self.naccpt += 1
@@ -86,27 +92,27 @@ class MonteCarlo(Constants):
         for i in range(3):
             self.celln[i] = vn**(1.0/3.0)
 
-        self.rx.clear()
-        self.ry.clear()
-        self.rz.clear()
+        self.rx_new.clear()
+        self.ry_new.clear()
+        self.rz_new.clear()
 
-        for atom in self.atoms:
+        for i in range(len(self.rx)):
             rnd = np.random.random_sample()
-            self.rx.append(atom[1]+self.drmax*(2.0*rnd-1.0))
+            self.rx_new.append(self.rx[i]+self.drmax*(2.0*rnd-1.0))
             rnd = np.random.random_sample()
-            self.ry.append(atom[2]+self.drmax*(2.0*rnd-1.0))
+            self.ry_new.append(self.ry[i]+self.drmax*(2.0*rnd-1.0))
             rnd = np.random.random_sample()
-            self.rz.append(atom[3]+self.drmax*(2.0*rnd-1.0))
+            self.rz_new.append(self.rz[i]+self.drmax*(2.0*rnd-1.0))
 
     def energy(self):
 
         self.setCoordinates()
 
-        libs.natom = len(self.atoms)
+        libs.natom = len(self.mat)
         libs.cell = self.cell
-        libs.rx = self.rx
-        libs.ry = self.ry
-        libs.rz = self.rz
+        libs.rx = self.rx_new
+        libs.ry = self.ry_new
+        libs.rz = self.rz_new
         libs.params = self.force_field 
 
         libs.forces()
@@ -115,28 +121,51 @@ class MonteCarlo(Constants):
 
     def hook(self, system):
 
-        atm = []
-        for atom in system.atoms:
-            atm.append(atom)
+        #        atm = []
+        #        for atom in system.atoms:
+        #            atm.append(atom)
        
-        self.atoms = np.array(atm)
+#        self.atoms = np.array(atm)
         self.cell = np.array(system.cell)
         self.temperature = np.array(system.temperature)
-        self.friction = np.array(system.friction)
         self.pressure = np.array(system.pressure)
         self.epotential = np.array(system.epotential)
         self.ekinetic = np.array(system.ekinetic)
+        self.nfree = 3*(len(system.mat)-1)
+        self.mat = np.array(system.mat)
+        self.atp = np.array(system.atp)
+        self.rx = np.array(system.rx)
+        self.ry = np.array(system.ry)
+        self.rz = np.array(system.rz)
+        self.vx = np.array(system.vx)
+        self.vy = np.array(system.vy)
+        self.vz = np.array(system.vz)
+        self.fx = np.array(system.fx)
+        self.fy = np.array(system.fy)
+        self.fz = np.array(system.fz)
+        self.ea = np.array(system.ea)
+
 
     def hook_output(self):
 
         context = System2(
                 self.cell,
                 self.temperature,
-                self.friction,
                 self.pressure,
                 self.epotential,
                 self.ekinetic,
-                self.atoms
+                self.mat,
+                self.atp,
+                self.rx,
+                self.ry,
+                self.rz,
+                self.vx,
+                self.vy,
+                self.vz,
+                self.fx,
+                self.fy,
+                self.fz,
+                self.ea,
                 )
 
         return context
