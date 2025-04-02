@@ -4,12 +4,12 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "m3l"
-version = "2024.08.dev5"
+version = "2025.04.dev6"
 authors = [{name = "Flaviano Williams Fernandes", email = "flaviano.fernandes@ifpr.edu.br"}]
 description = "Machine Learning and Molecular Modelling"
 license = {text = "MIT"}
 keywords = ["Machine learning, molecular modelling "]
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = ["numpy", "scipy"]
 
 [project.urls]
