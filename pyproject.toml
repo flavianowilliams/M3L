@@ -9,7 +9,7 @@ authors = [{name = "Flaviano Williams Fernandes", email = "flaviano.fernandes@if
 description = "Machine Learning and Molecular Modelling"
 license = {text = "MIT"}
 keywords = ["Machine learning, molecular modelling "]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = ["numpy", "scipy"]
 
 [project.urls]
