@@ -125,10 +125,10 @@ class System(Constants):
 
     def setSystem(self, temperature, pressure, cell, atoms):
 
-        self.temperature = np.array(temperature)
-        self.pressure = np.array(pressure)
-        self.cell = np.array(cell)
-        self.epotential = np.array(0.0)
+        self.temperature = np.array(temperature, dtype = np.float32)
+        self.pressure = np.array(pressure, dtype = np.float32)
+        self.cell = np.array(cell, dtype = np.float32)
+        self.epotential = np.array(0.0, dtype = np.float32)
 
         mat = []
         atp = []

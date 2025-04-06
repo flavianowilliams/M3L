@@ -19,6 +19,7 @@ contains
 
     if (allocated(fx).eqv..FALSE.) then
       allocate(fx(natom), fy(natom), fz(natom), ea(natom))
+      allocate(vx(natom), vy(natom), vz(natom), mass(natom))
       allocate(rx(natom), ry(natom), rz(natom), atp(natom))
     end if
 
@@ -92,8 +93,8 @@ contains
       ea(i) = 0.d0
       do j = i+1, natom
         nj = j
-        prm1 = sqrt(params(1, 2)*params(1, 2))
-        prm2 = 0.5d0*(params(1, 3)+params(1, 3))
+        prm1 = sqrt(params(atp(i), 2)*params(atp(nj), 2))
+        prm2 = 0.5d0*(params(atp(i), 3)+params(atp(nj), 3))
 !      do j = 1, nlist(i) 
 !        nj = ilist(i,j)
         dx = rx(nj)-rx(i)
@@ -112,7 +113,7 @@ contains
         fz(nj) = fz(nj)+fr*dz
         ea(i) = ea(i)+epot
         dvir = dvir+fr*dr**2.0d0 
-      end do
+        end do
       energy = energy+ea(i)
       virial = virial+dvir
     end do 
