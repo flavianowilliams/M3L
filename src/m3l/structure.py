@@ -30,34 +30,34 @@ class System2(Constants):
 
     def __init__(self, cell, temperature, pressure, epotential, ekinetic, mat, atp, rx, ry, rz, vx, vy, vz, fx, fy, fz, ea):
         
-        self.cell = np.array(cell)
-        self.temperature = np.array(temperature)
-        self.pressure = np.array(pressure)
-        self.epotential = np.array(epotential)
-        self.ekinetic = np.array(ekinetic)
-        self.mat = np.array(mat)
-        self.atp = np.array(atp)
-        self.rx = np.array(rx)
-        self.ry = np.array(ry)
-        self.rz = np.array(rz)
-        self.vx = np.array(vx)
-        self.vy = np.array(vy)
-        self.vz = np.array(vz)
-        self.fx = np.array(fx)
-        self.fy = np.array(fy)
-        self.fz = np.array(fz)
-        self.ea = np.array(ea)
+        self.cell = cell
+        self.temperature = temperature
+        self.pressure = pressure
+        self.epotential = epotential
+        self.ekinetic = ekinetic
+        self.mat = mat
+        self.atp = atp
+        self.rx = rx
+        self.ry = ry
+        self.rz = rz
+        self.vx = vx
+        self.vy = vy
+        self.vz = vz
+        self.fx = fx
+        self.fy = fy
+        self.fz = fz
+        self.ea = ea
 
     def convertUnitsInv(self):
 
-        self.epotential = self.epotential/self.ECONV
-        self.ekinetic = self.ekinetic/self.ECONV
-        self.temperature = self.temperature/self.TEMPCONV
-        self.pressure = self.pressure/self.PCONV
+        self.epotential = np.divide(self.epotential, self.ECONV)
+        self.ekinetic = np.divide(self.ekinetic, self.ECONV)
+        self.temperature = np.divide(self.temperature, self.TEMPCONV)
+        self.pressure = np.divide(self.pressure, self.PCONV)
 
-        self.cell[0] = self.cell[0]/self.ACONV
-        self.cell[1] = self.cell[1]/self.ACONV
-        self.cell[2] = self.cell[2]/self.ACONV
+        self.cell[0] = np.divide(self.cell[0], self.ACONV)
+        self.cell[1] = np.divide(self.cell[1], self.ACONV)
+        self.cell[2] = np.divide(self.cell[2], self.ACONV)
 
         self.mat = np.divide(self.mat, self.MCONV)
         self.rx = np.divide(self.rx, self.ACONV)
@@ -105,30 +105,30 @@ class System(Constants):
 
         with open(filename, 'r') as file:
             json_file = json.load(file)
-            self.cell = np.array(json_file['cell'], dtype=np.float32)
-            self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float32)
-            self.pressure = np.array(json_file['thermodynamic'][1], dtype=np.float32)
-            self.epotential = np.array(json_file['thermodynamic'][2], dtype=np.float32)
-            self.ekinetic = np.array(json_file['thermodynamic'][3], dtype=np.float32)
-            self.mat = np.array(json_file['mat'], dtype=np.float32)
+            self.cell = np.array(json_file['cell'], dtype=np.float64)
+            self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float64)
+            self.pressure = np.array(json_file['thermodynamic'][1], dtype=np.float64)
+            self.epotential = np.array(json_file['thermodynamic'][2], dtype=np.float64)
+            self.ekinetic = np.array(json_file['thermodynamic'][3], dtype=np.float64)
+            self.mat = np.array(json_file['mat'], dtype=np.float64)
             self.atp = np.array(json_file['atp'], dtype=np.int32)
-            self.rx = np.array(json_file['rx'], dtype=np.float32)
-            self.ry = np.array(json_file['ry'], dtype=np.float32)
-            self.rz = np.array(json_file['rz'], dtype=np.float32)
-            self.vx = np.array(json_file['vx'], dtype=np.float32)
-            self.vy = np.array(json_file['vy'], dtype=np.float32)
-            self.vz = np.array(json_file['vz'], dtype=np.float32)
-            self.fx = np.array(json_file['fx'], dtype=np.float32)
-            self.fy = np.array(json_file['fy'], dtype=np.float32)
-            self.fz = np.array(json_file['fz'], dtype=np.float32)
-            self.ea = np.array(json_file['ea'], dtype=np.float32)
+            self.rx = np.array(json_file['rx'], dtype=np.float64)
+            self.ry = np.array(json_file['ry'], dtype=np.float64)
+            self.rz = np.array(json_file['rz'], dtype=np.float64)
+            self.vx = np.array(json_file['vx'], dtype=np.float64)
+            self.vy = np.array(json_file['vy'], dtype=np.float64)
+            self.vz = np.array(json_file['vz'], dtype=np.float64)
+            self.fx = np.array(json_file['fx'], dtype=np.float64)
+            self.fy = np.array(json_file['fy'], dtype=np.float64)
+            self.fz = np.array(json_file['fz'], dtype=np.float64)
+            self.ea = np.array(json_file['ea'], dtype=np.float64)
 
     def setSystem(self, temperature, pressure, cell, atoms):
 
-        self.temperature = np.array(temperature, dtype = np.float32)
-        self.pressure = np.array(pressure, dtype = np.float32)
-        self.cell = np.array(cell, dtype = np.float32)
-        self.epotential = np.array(0.0, dtype = np.float32)
+        self.temperature = np.array(temperature, dtype = np.float64)
+        self.pressure = np.array(pressure, dtype = np.float64)
+        self.cell = np.array(cell, dtype = np.float64)
+        self.epotential = np.array(0.0, dtype = np.float64)
 
         mat = []
         atp = []
@@ -146,11 +146,11 @@ class System(Constants):
 
         self.setEkinetic(natoms)
 
-        self.mat = np.array(mat, dtype = np.float32)
+        self.mat = np.array(mat, dtype = np.float64)
         self.atp = np.array(atp, dtype = np.int32)
-        self.rx = np.array(rx, dtype = np.float32)
-        self.ry = np.array(ry, dtype = np.float32)
-        self.rz = np.array(rz, dtype = np.float32)
+        self.rx = np.array(rx, dtype = np.float64)
+        self.ry = np.array(ry, dtype = np.float64)
+        self.rz = np.array(rz, dtype = np.float64)
         self.vx = np.repeat(self.ekinetic, natoms)
         self.vy = np.repeat(self.ekinetic, natoms)
         self.vz = np.repeat(self.ekinetic, natoms)
@@ -163,7 +163,7 @@ class System(Constants):
 
         nfree = 3*(natoms-1)
         
-        self.ekinetic = np.array(1.5*nfree*self.KB*(self.temperature*self.TEMPCONV), dtype = np.float32)
+        self.ekinetic = np.array(1.5*nfree*self.KB*(self.temperature*self.TEMPCONV), dtype = np.float64)
 
     def convertUnits(self):
 
@@ -189,14 +189,14 @@ class System(Constants):
 
     def convertUnitsInv(self):
 
-        self.epotential = self.epotential/self.ECONV
-        self.ekinetic = self.ekinetic/self.ECONV
-        self.temperature = self.temperature/self.TEMPCONV
-        self.pressure = self.pressure/self.PCONV
+        self.epotential = np.divide(self.epotential, self.ECONV)
+        self.ekinetic = np.divide(self.ekinetic, self.ECONV)
+        self.temperature = np.divide(self.temperature, self.TEMPCONV)
+        self.pressure = np.divide(self.pressure, self.PCONV)
 
-        self.cell[0] = self.cell[0]/self.ACONV
-        self.cell[1] = self.cell[1]/self.ACONV
-        self.cell[2] = self.cell[2]/self.ACONV
+        self.cell[0] = np.divide(self.cell[0], self.ACONV)
+        self.cell[1] = np.divide(self.cell[1], self.ACONV)
+        self.cell[2] = np.divide(self.cell[2], self.ACONV)
 
         self.mat = np.divide(self.mat, self.MCONV)
         self.rx = np.divide(self.rx, self.ACONV)

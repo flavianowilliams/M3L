@@ -1,10 +1,10 @@
 module Libs 
-  integer natom
+  integer :: natom
   integer, allocatable, dimension(:) :: nlist
   integer, allocatable, dimension(:,:) :: ilist
   integer, allocatable, dimension(:) :: atp
-  real(8) timestep, sigma, tstat, pstat, bfactor, press_bath, friction
-  real(8) ekinetic, energy, temperature, pressure, virial, drmax 
+  real(8) :: timestep, sigma, tstat, pstat, bfactor, press_bath, friction
+  real(8) :: ekinetic, energy, temperature, pressure, virial, drmax 
   real(8), dimension(3) :: cell
   real(8), allocatable, dimension(:, :) :: params
   real(8), allocatable, dimension(:) :: mass 
@@ -15,19 +15,10 @@ contains
 !
 !-Calculate forces a atomic energy
 !
-  subroutine allocate_arrays
-
-    if (allocated(fx).eqv..FALSE.) then
-      allocate(fx(natom), fy(natom), fz(natom), ea(natom))
-      allocate(vx(natom), vy(natom), vz(natom), mass(natom))
-      allocate(rx(natom), ry(natom), rz(natom), atp(natom))
-    end if
-
-  end subroutine allocate_arrays
-
   subroutine forces
+
     implicit none
-    integer i
+    integer :: i
 
     do i = 1, natom
       fx(i) = 0.d0
@@ -68,6 +59,7 @@ contains
 !- Bond constraint rules
 !
   subroutine mic(dx, dy, dz)
+
     implicit none
     real(8), intent(inout) :: dx, dy, dz
 
@@ -80,9 +72,10 @@ contains
 !- Intermolecular interaction
 !
   subroutine vdw
+
     implicit none
-    integer i, j, nj 
-    real(8) depot, epot, fr, dx, dy, dz, dr, dvir, encorr, vircorr, drmin, prm1, prm2
+    integer :: i, j, nj 
+    real(8) :: depot, epot, fr, dx, dy, dz, dr, dvir, encorr, vircorr, drmin, prm1, prm2
     
 !    call neighbour_list
 
@@ -119,7 +112,7 @@ contains
     end do 
 
     drmin = min(cell(1), cell(2), cell(3))
-    drmin = 0.5*drmin
+    drmin = 0.5d0*drmin
 
 !    encorr = 4.0d0*params(1, 3)*(params(1, 4)**12/(9.0d0*drmin**9)-params(1, 4)**6/(3.d0*drmin**3)) 
 !    vircorr = -24.0d0*params(1, 3)*(2.0d0*params(1, 4)**12/(9.0d0*drmin**9)-params(1, 4)**6/(3.d0*drmin**3)) 
@@ -138,9 +131,10 @@ contains
 !-Neighbours list subroutine function
 !
   subroutine neighbour_list
+
     implicit none
-    integer i, j, nx
-    real(8) dx, dy, dz, dr, drmin
+    integer :: i, j, nx
+    real(8) :: dx, dy, dz, dr, drmin
 
     if (allocated(nlist).eqv..FALSE.) then
       allocate(nlist(natom), ilist(natom, natom))
@@ -172,8 +166,9 @@ contains
 !-periodic condition contour
 !
   subroutine ccp()
+
     implicit none
-    integer i 
+    integer :: i 
 
     do i = 1, natom
       rx(i) = rx(i)-cell(1)*nint(rx(i)/cell(1))
@@ -186,9 +181,10 @@ contains
 !-Ensemble nvt berendsen
 !
   subroutine ekinetic_func()
+
     implicit none
-    integer i 
-    real(8) sum
+    integer :: i 
+    real(8) :: sum
 
     sum = 0.d0
     do i = 1, natom
@@ -208,7 +204,7 @@ contains
   subroutine pressure_func
 
     implicit none 
-    real(8) volume 
+    real(8) :: volume 
     
     volume = cell(1)*cell(2)*cell(3)
 
@@ -235,9 +231,10 @@ contains
 !-Ensemble nvt berendsen
 !
   subroutine nvt
+
     implicit none
-    integer i 
-    real(8) qui
+    integer :: i 
+    real(8) :: qui
     
     do i = 1, natom 
       vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
@@ -274,6 +271,7 @@ contains
   end subroutine nvt
 
   subroutine friction_func
+
     implicit none
 
     friction = friction+0.25d0*timestep*(ekinetic-sigma)/(sigma*tstat**2)
@@ -283,16 +281,16 @@ contains
   subroutine eta_func(eta)
 
     implicit none
-
     real(8), intent(out) :: eta
 
-    eta = (1.0d0-bfactor*timestep*(press_bath-pressure)/pstat)**(1.0/3.0)
+    eta = (1.0d0-bfactor*timestep*(press_bath-pressure)/pstat)**(1.0d0/3.0d0)
 
   end subroutine eta_func
 
   subroutine nvt_hoover
+
     implicit none
-    integer i 
+    integer :: i 
     
     call ekinetic_func
     call friction_func
@@ -340,9 +338,10 @@ contains
   end subroutine nvt_hoover
 
   subroutine npt_berendsen
+
     implicit none
-    integer i
-    real(8) eta, qui
+    integer :: i
+    real(8) :: eta, qui
 
     call eta_func(eta)
 

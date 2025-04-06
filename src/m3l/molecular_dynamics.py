@@ -3,56 +3,56 @@ from m3l.structure import Atom, System2
 from m3l.utils import Constants
 from m3l import libs
 
-class ForceField(Constants):
-
-    params = np.array([])
-
-    def van_der_waals(self, vars_):
-
-        prms = []
-        for list_ in vars_:
-            prms.append(list_)
-
-        self.params = np.array([prms])
-
-    def interaction(self, system, params):
-
-        libs.rx = system.rx
-        libs.ry = system.ry
-        libs.rz = system.rz
-        libs.natom = len(system.zat)
-        libs.cell = system.cell
-        libs.params = params
-        libs.forces()
-
-        system.epotential = libs.energy
-
-        self.fx = libs.fx 
-        self.fy = libs.fy 
-        self.fz = libs.fz 
-        self.ea = libs.ea 
-
-        return system
-
-    def __call__(self):
-
-        return self.params
+#class ForceField(Constants):
+#
+#    params = np.array([])
+#
+#    def van_der_waals(self, vars_):
+#
+#        prms = []
+#        for list_ in vars_:
+#            prms.append(list_)
+#
+#        self.params = np.array([prms])
+#
+#    def interaction(self, system, params):
+#
+#        libs.rx = system.rx
+#        libs.ry = system.ry
+#        libs.rz = system.rz
+#        libs.natom = len(system.zat)
+#        libs.cell = system.cell
+#        libs.params = params
+#        libs.forces()
+#
+#        system.epotential = libs.energy
+#
+#        self.fx = libs.fx 
+#        self.fy = libs.fy 
+#        self.fz = libs.fz 
+#        self.ea = libs.ea 
+#
+#        return system
+#
+#    def __call__(self):
+#
+#        return self.params
 
 class Ensemble(Constants):
 
     def __init__(self, temp_bath, press_bath, timestep, force_field, tstat = None, pstat = None, bfactor = None):
 
-        self.timestep = np.array(timestep*self.TIMECONV, dtype = np.float32)
-        self.dtimestep = np.array(timestep*self.TIMECONV, dtype = np.float32)
-        self.force_field = np.array(force_field, dtype = np.float32)
-        self.temp_bath = np.array(temp_bath*self.TEMPCONV, dtype = np.float32)
-        self.press_bath = np.array(press_bath*self.PCONV, dtype = np.float32)
-        self.tstat = np.array(tstat*self.TIMECONV, dtype = np.float32)
-        self.pstat = np.array(pstat*self.TIMECONV, dtype = np.float32)
+        self.timestep = np.array(timestep*self.TIMECONV, dtype = np.float64)
+        self.dtimestep = np.array(timestep*self.TIMECONV, dtype = np.float64)
+        self.force_field = np.array(force_field, dtype = np.float64)
+        self.temp_bath = np.array(temp_bath*self.TEMPCONV, dtype = np.float64)
+        self.press_bath = np.array(press_bath*self.PCONV, dtype = np.float64)
+        self.tstat = np.array(tstat*self.TIMECONV, dtype = np.float64)
+        self.pstat = np.array(pstat*self.TIMECONV, dtype = np.float64)
         self.friction = 0.e0
 
         if bfactor:
-            self.bfactor = np.array(bfactor, dtype = np.float32)
+            self.bfactor = np.array(bfactor, dtype = np.float64)
         else:
             self.bfactor = self.BETAFACTOR
     
@@ -97,7 +97,7 @@ class Ensemble(Constants):
         libs.press_bath = self.press_bath
         libs.cell = self.cell
 
-        libs.allocate_arrays()
+#        libs.allocate_arrays()
 
         libs.params = self.force_field 
 
@@ -108,6 +108,10 @@ class Ensemble(Constants):
         libs.vx = self.vx
         libs.vy = self.vy
         libs.vz = self.vz
+        libs.fx = self.fx
+        libs.fy = self.fy
+        libs.fz = self.fz
+        libs.ea = self.ea
         libs.atp = self.atp
 
         libs.npt_berendsen()
@@ -130,6 +134,8 @@ class Ensemble(Constants):
         self.ekinetic = libs.ekinetic
         self.epotential = libs.energy
 
+#        libs.deallocate_arrays()
+#
 #        self.setTimestep(libs.drmax)
 #
 #    def setTimestep(self, drmax):
@@ -141,45 +147,45 @@ class Ensemble(Constants):
 
     def hook(self, system):
 
-#        self.cell = system.cell
-#        self.temperature = system.temperature
-#        self.pressure = system.pressure
-#        self.epotential = system.epotential
-#        self.ekinetic = system.ekinetic
-#        self.nfree = 3*(len(system.mat)-1)
-#
-#        self.mat = system.mat
-#        self.atp = system.atp
-#        self.rx = system.rx
-#        self.ry = system.ry
-#        self.rz = system.rz
-#        self.vx = system.vx
-#        self.vy = system.vy
-#        self.vz = system.vz
-#        self.fx = system.fx
-#        self.fy = system.fy
-#        self.fz = system.fz
-#        self.ea = system.ea
-
-        self.cell = np.array(system.cell)
-        self.temperature = np.array(system.temperature)
-        self.pressure = np.array(system.pressure)
-        self.epotential = np.array(system.epotential)
-        self.ekinetic = np.array(system.ekinetic)
+        self.cell = system.cell
+        self.temperature = system.temperature
+        self.pressure = system.pressure
+        self.epotential = system.epotential
+        self.ekinetic = system.ekinetic
         self.nfree = 3*(len(system.mat)-1)
 
-        self.mat = np.array(system.mat)
-        self.atp = np.array(system.atp)
-        self.rx = np.array(system.rx)
-        self.ry = np.array(system.ry)
-        self.rz = np.array(system.rz)
-        self.vx = np.array(system.vx)
-        self.vy = np.array(system.vy)
-        self.vz = np.array(system.vz)
-        self.fx = np.array(system.fx)
-        self.fy = np.array(system.fy)
-        self.fz = np.array(system.fz)
-        self.ea = np.array(system.ea)
+        self.mat = system.mat
+        self.atp = system.atp
+        self.rx = system.rx
+        self.ry = system.ry
+        self.rz = system.rz
+        self.vx = system.vx
+        self.vy = system.vy
+        self.vz = system.vz
+        self.fx = system.fx
+        self.fy = system.fy
+        self.fz = system.fz
+        self.ea = system.ea
+
+#        self.cell = np.array(system.cell)
+#        self.temperature = np.array(system.temperature)
+#        self.pressure = np.array(system.pressure)
+#        self.epotential = np.array(system.epotential)
+#        self.ekinetic = np.array(system.ekinetic)
+#        self.nfree = 3*(len(system.mat)-1)
+#
+#        self.mat = np.array(system.mat)
+#        self.atp = np.array(system.atp)
+#        self.rx = np.array(system.rx)
+#        self.ry = np.array(system.ry)
+#        self.rz = np.array(system.rz)
+#        self.vx = np.array(system.vx)
+#        self.vy = np.array(system.vy)
+#        self.vz = np.array(system.vz)
+#        self.fx = np.array(system.fx)
+#        self.fy = np.array(system.fy)
+#        self.fz = np.array(system.fz)
+#        self.ea = np.array(system.ea)
 
     def hook_output(self):
 

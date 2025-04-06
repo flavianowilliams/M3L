@@ -4,11 +4,11 @@ from m3l.utils import Constants
 
 class ForceField(Constants):
 
-    params = np.array([])
+    params = np.array([], dtype = np.float64)
 
     def potential(self, *args):
 
-        self.params = np.array([args[0]])
+        self.params = np.array([args[0]], dtype = np.float64)
 
         for i in range(1, len(args)):
 
@@ -41,5 +41,5 @@ class Intermolecular(Constants):
 
     def site(charge, eps, sigma):
 
-        return np.array([charge, eps, sigma])
+        return np.array([charge, eps, sigma], dtype = np.float64)
 
