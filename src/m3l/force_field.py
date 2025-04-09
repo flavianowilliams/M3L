@@ -8,11 +8,26 @@ class ForceField(Constants):
 
     def potential(self, *args):
 
-        self.params = np.array([args[0]], dtype = np.float64)
+        list_ = []
+        for arg in args:
 
-        for i in range(1, len(args)):
+            list_.append(arg[0])
 
-            self.params = np.append(self.params, [args[i]], axis = 0)
+        list_.sort()
+
+        for i, arg in enumerate(args):
+
+            indx = list_.index(arg[0])
+
+            if self.params.size == 0:
+
+                self.params = np.array([args[indx]], dtype = np.float64)
+            
+            else:
+
+                self.params = np.append(self.params, [args[indx]], axis = 0)
+
+        self.params = np.delete(self.params, 0, axis = 1)
 
     def interaction(self, system, potential):
 
@@ -39,7 +54,7 @@ class ForceField(Constants):
 
 class Intermolecular(Constants):
 
-    def site(charge, eps, sigma):
+    def site(indx, charge, eps, sigma):
 
-        return np.array([charge, eps, sigma], dtype = np.float64)
+        return np.array([indx, charge, eps, sigma], dtype = np.float64)
 

@@ -99,7 +99,85 @@ class System2(Constants):
         with open(filename, 'w') as file:
             file.write(outfile)
 
+    def save2(self, filename = 'system.json'):
+
+        atoms = []
+
+        for i in range(len(self.mat)):
+
+            atoms = np.append(atoms, [
+                self.mat[i],
+                self.atp[i],
+                self.rx[i],
+                self.ry[i],
+                self.rz[i],
+                self.vx[i],
+                self.vy[i],
+                self.vz[i],
+                self.fx[i],
+                self.fy[i],
+                self.fz[i],
+                self.ea[i]
+                ], axis = 0)
+
+        print(atoms)
+
+        dictfile = {
+                'cell': self.cell.tolist(),
+                'thermodynamic': [
+                    self.temperature.item(),
+                    self.pressure.item(),
+                    self.epotential.item(),
+                    self.ekinetic.item()
+                    ],
+                'atoms': atoms.tolist()
+                }
+
+        outfile = json.dumps(dictfile, indent = 1)
+        with open(filename, 'w') as file:
+            file.write(outfile)
+
 class System(Constants):
+
+    def loadSystem2(self, filename):
+
+        with open(filename, 'r') as file:
+            json_file = json.load(file)
+            self.cell = np.array(json_file['cell'], dtype=np.float64)
+            self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float64)
+            self.pressure = np.array(json_file['thermodynamic'][1], dtype=np.float64)
+            self.epotential = np.array(json_file['thermodynamic'][2], dtype=np.float64)
+            self.ekinetic = np.array(json_file['thermodynamic'][3], dtype=np.float64)
+
+            atoms = np.array(json_file['atoms'], dtype=np.float64)
+
+            self.mat = np.array([])
+            self.atp = np.array([])
+            self.rx = np.array([])
+            self.ry = np.array([])
+            self.rz = np.array([])
+            self.vx = np.array([])
+            self.vy = np.array([])
+            self.vz = np.array([])
+            self.fx = np.array([])
+            self.fy = np.array([])
+            self.fz = np.array([])
+            self.ea = np.array([])
+
+            for atom in atoms:
+
+                self.mat = np.append(self.mat, atoms[0])
+                self.atp = np.append(self.atp, int(atoms[1]))
+                self.rx = np.append(self.rx, atoms[2])
+                self.ry = np.append(self.ry, atoms[3])
+                self.rz = np.append(self.rz, atoms[4])
+                self.vx = np.append(self.vx, atoms[5])
+                self.vy = np.append(self.vy, atoms[6])
+                self.vz = np.append(self.vz, atoms[7])
+                self.fx = np.append(self.fx, atoms[8])
+                self.fy = np.append(self.fy, atoms[9])
+                self.fz = np.append(self.fz, atoms[10])
+                self.ea = np.append(self.ea, atoms[11])
 
     def loadSystem(self, filename):
 
