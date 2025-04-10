@@ -71,41 +71,54 @@ class System2(Constants):
         self.fz = np.divide(self.fz, self.ECONV/self.ACONV)
         self.ea = np.divide(self.ea, self.ECONV)
 
+#    def save(self, filename = 'system.json'):
+#
+#        dictfile = {
+#                'cell': self.cell.tolist(),
+#                'thermodynamic': [
+#                    self.temperature.item(),
+#                    self.pressure.item(),
+#                    self.epotential.item(),
+#                    self.ekinetic.item()
+#                    ],
+#                'mat': self.mat.tolist(),
+#                'atp': self.atp.tolist(),
+#                'rx': self.rx.tolist(),
+#                'ry': self.ry.tolist(),
+#                'rz': self.rz.tolist(),
+#                'vx': self.vx.tolist(),
+#                'vy': self.vy.tolist(),
+#                'vz': self.vz.tolist(),
+#                'fx': self.fx.tolist(),
+#                'fy': self.fy.tolist(),
+#                'fz': self.fz.tolist(),
+#                'ea': self.ea.tolist(),
+#                }
+#
+#        outfile = json.dumps(dictfile, indent = 1)
+#        with open(filename, 'w') as file:
+#            file.write(outfile)
+
     def save(self, filename = 'system.json'):
 
-        dictfile = {
-                'cell': self.cell.tolist(),
-                'thermodynamic': [
-                    self.temperature.item(),
-                    self.pressure.item(),
-                    self.epotential.item(),
-                    self.ekinetic.item()
-                    ],
-                'mat': self.mat.tolist(),
-                'atp': self.atp.tolist(),
-                'rx': self.rx.tolist(),
-                'ry': self.ry.tolist(),
-                'rz': self.rz.tolist(),
-                'vx': self.vx.tolist(),
-                'vy': self.vy.tolist(),
-                'vz': self.vz.tolist(),
-                'fx': self.fx.tolist(),
-                'fy': self.fy.tolist(),
-                'fz': self.fz.tolist(),
-                'ea': self.ea.tolist(),
-                }
+        atoms = np.array([[
+                self.mat[0],
+                self.atp[0],
+                self.rx[0],
+                self.ry[0],
+                self.rz[0],
+                self.vx[0],
+                self.vy[0],
+                self.vz[0],
+                self.fx[0],
+                self.fy[0],
+                self.fz[0],
+                self.ea[0]
+            ]], dtype = np.float64)
 
-        outfile = json.dumps(dictfile, indent = 1)
-        with open(filename, 'w') as file:
-            file.write(outfile)
+        for i in range(1, len(self.mat)):
 
-    def save2(self, filename = 'system.json'):
-
-        atoms = []
-
-        for i in range(len(self.mat)):
-
-            atoms = np.append(atoms, [
+            atoms = np.append(atoms, [[
                 self.mat[i],
                 self.atp[i],
                 self.rx[i],
@@ -118,9 +131,7 @@ class System2(Constants):
                 self.fy[i],
                 self.fz[i],
                 self.ea[i]
-                ], axis = 0)
-
-        print(atoms)
+                ]], axis = 0)
 
         dictfile = {
                 'cell': self.cell.tolist(),
@@ -139,7 +150,7 @@ class System2(Constants):
 
 class System(Constants):
 
-    def loadSystem2(self, filename):
+    def loadSystem(self, filename):
 
         with open(filename, 'r') as file:
             json_file = json.load(file)
@@ -166,40 +177,46 @@ class System(Constants):
 
             for atom in atoms:
 
-                self.mat = np.append(self.mat, atoms[0])
-                self.atp = np.append(self.atp, int(atoms[1]))
-                self.rx = np.append(self.rx, atoms[2])
-                self.ry = np.append(self.ry, atoms[3])
-                self.rz = np.append(self.rz, atoms[4])
-                self.vx = np.append(self.vx, atoms[5])
-                self.vy = np.append(self.vy, atoms[6])
-                self.vz = np.append(self.vz, atoms[7])
-                self.fx = np.append(self.fx, atoms[8])
-                self.fy = np.append(self.fy, atoms[9])
-                self.fz = np.append(self.fz, atoms[10])
-                self.ea = np.append(self.ea, atoms[11])
+                self.mat = np.append(self.mat, atom[0])
+                self.atp = np.append(self.atp, atom[1])
+                self.rx = np.append(self.rx, atom[2])
+                self.ry = np.append(self.ry, atom[3])
+                self.rz = np.append(self.rz, atom[4])
+                self.vx = np.append(self.vx, atom[5])
+                self.vy = np.append(self.vy, atom[6])
+                self.vz = np.append(self.vz, atom[7])
+                self.fx = np.append(self.fx, atom[8])
+                self.fy = np.append(self.fy, atom[9])
+                self.fz = np.append(self.fz, atom[10])
+                self.ea = np.append(self.ea, atom[11])
 
-    def loadSystem(self, filename):
+        self.setSites()
 
-        with open(filename, 'r') as file:
-            json_file = json.load(file)
-            self.cell = np.array(json_file['cell'], dtype=np.float64)
-            self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float64)
-            self.pressure = np.array(json_file['thermodynamic'][1], dtype=np.float64)
-            self.epotential = np.array(json_file['thermodynamic'][2], dtype=np.float64)
-            self.ekinetic = np.array(json_file['thermodynamic'][3], dtype=np.float64)
-            self.mat = np.array(json_file['mat'], dtype=np.float64)
-            self.atp = np.array(json_file['atp'], dtype=np.int32)
-            self.rx = np.array(json_file['rx'], dtype=np.float64)
-            self.ry = np.array(json_file['ry'], dtype=np.float64)
-            self.rz = np.array(json_file['rz'], dtype=np.float64)
-            self.vx = np.array(json_file['vx'], dtype=np.float64)
-            self.vy = np.array(json_file['vy'], dtype=np.float64)
-            self.vz = np.array(json_file['vz'], dtype=np.float64)
-            self.fx = np.array(json_file['fx'], dtype=np.float64)
-            self.fy = np.array(json_file['fy'], dtype=np.float64)
-            self.fz = np.array(json_file['fz'], dtype=np.float64)
-            self.ea = np.array(json_file['ea'], dtype=np.float64)
+# convertendo datatypes
+
+        self.atp = np.array(self.atp, dtype = np.int32)
+
+#    def loadSystem2(self, filename):
+#
+#        with open(filename, 'r') as file:
+#            json_file = json.load(file)
+#            self.cell = np.array(json_file['cell'], dtype=np.float64)
+#            self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float64)
+#            self.pressure = np.array(json_file['thermodynamic'][1], dtype=np.float64)
+#            self.epotential = np.array(json_file['thermodynamic'][2], dtype=np.float64)
+#            self.ekinetic = np.array(json_file['thermodynamic'][3], dtype=np.float64)
+#            self.mat = np.array(json_file['mat'], dtype=np.float64)
+#            self.atp = np.array(json_file['atp'], dtype=np.int32)
+#            self.rx = np.array(json_file['rx'], dtype=np.float64)
+#            self.ry = np.array(json_file['ry'], dtype=np.float64)
+#            self.rz = np.array(json_file['rz'], dtype=np.float64)
+#            self.vx = np.array(json_file['vx'], dtype=np.float64)
+#            self.vy = np.array(json_file['vy'], dtype=np.float64)
+#            self.vz = np.array(json_file['vz'], dtype=np.float64)
+#            self.fx = np.array(json_file['fx'], dtype=np.float64)
+#            self.fy = np.array(json_file['fy'], dtype=np.float64)
+#            self.fz = np.array(json_file['fz'], dtype=np.float64)
+#            self.ea = np.array(json_file['ea'], dtype=np.float64)
 
     def setSystem(self, temperature, pressure, cell, atoms):
 
@@ -242,6 +259,30 @@ class System(Constants):
         nfree = 3*(natoms-1)
         
         self.ekinetic = np.array(1.5*nfree*self.KB*(self.temperature*self.TEMPCONV), dtype = np.float64)
+
+    def setSites(self):
+
+        self.site = np.array([], dtype = np.int32)
+
+        for item in self.atp:
+
+            if item not in self.site:
+
+                self.site = np.append(self.site, item)
+
+        self.nsite = np.array([], dtype = np.int32)
+
+        for site in self.site:
+
+            nx = 0 
+
+            for item in self.atp:
+
+                if site == item:
+
+                    nx += 1 
+
+            self.nsite = np.append(self.nsite, nx)
 
     def convertUnits(self):
 
@@ -290,6 +331,38 @@ class System(Constants):
 
     def save(self, filename = 'system.json'):
 
+        atoms = np.array([[
+                self.mat[0],
+                self.atp[0],
+                self.rx[0],
+                self.ry[0],
+                self.rz[0],
+                self.vx[0],
+                self.vy[0],
+                self.vz[0],
+                self.fx[0],
+                self.fy[0],
+                self.fz[0],
+                self.ea[0]
+            ]], dtype = np.float64)
+
+        for i in range(1, len(self.mat)):
+
+            atoms = np.append(atoms, [[
+                self.mat[i],
+                self.atp[i],
+                self.rx[i],
+                self.ry[i],
+                self.rz[i],
+                self.vx[i],
+                self.vy[i],
+                self.vz[i],
+                self.fx[i],
+                self.fy[i],
+                self.fz[i],
+                self.ea[i]
+                ]], axis = 0)
+
         dictfile = {
                 'cell': self.cell.tolist(),
                 'thermodynamic': [
@@ -298,23 +371,40 @@ class System(Constants):
                     self.epotential.item(),
                     self.ekinetic.item()
                     ],
-                'mat': self.mat.tolist(),
-                'atp': self.atp.tolist(),
-                'rx': self.rx.tolist(),
-                'ry': self.ry.tolist(),
-                'rz': self.rz.tolist(),
-                'vx': self.vx.tolist(),
-                'vy': self.vy.tolist(),
-                'vz': self.vz.tolist(),
-                'fx': self.fx.tolist(),
-                'fy': self.fy.tolist(),
-                'fz': self.fz.tolist(),
-                'ea': self.ea.tolist(),
+                'atoms': atoms.tolist()
                 }
 
         outfile = json.dumps(dictfile, indent = 1)
         with open(filename, 'w') as file:
             file.write(outfile)
+
+#    def save(self, filename = 'system.json'):
+#
+#        dictfile = {
+#                'cell': self.cell.tolist(),
+#                'thermodynamic': [
+#                    self.temperature.item(),
+#                    self.pressure.item(),
+#                    self.epotential.item(),
+#                    self.ekinetic.item()
+#                    ],
+#                'mat': self.mat.tolist(),
+#                'atp': self.atp.tolist(),
+#                'rx': self.rx.tolist(),
+#                'ry': self.ry.tolist(),
+#                'rz': self.rz.tolist(),
+#                'vx': self.vx.tolist(),
+#                'vy': self.vy.tolist(),
+#                'vz': self.vz.tolist(),
+#                'fx': self.fx.tolist(),
+#                'fy': self.fy.tolist(),
+#                'fz': self.fz.tolist(),
+#                'ea': self.ea.tolist(),
+#                }
+#
+#        outfile = json.dumps(dictfile, indent = 1)
+#        with open(filename, 'w') as file:
+#            file.write(outfile)
 
 #class Symmetry(System):
 #

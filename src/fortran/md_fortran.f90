@@ -1,8 +1,7 @@
 module Libs 
   integer :: natom
-  integer, allocatable, dimension(:) :: nlist
+  integer, allocatable, dimension(:) :: nlist, atp, nsite
   integer, allocatable, dimension(:,:) :: ilist
-  integer, allocatable, dimension(:) :: atp
   real(8) :: timestep, sigma, tstat, pstat, bfactor, press_bath, friction
   real(8) :: ekinetic, energy, temperature, pressure, virial, drmax 
   real(8), dimension(3) :: cell
@@ -79,15 +78,15 @@ contains
     
 !    call neighbour_list
 
-    energy = 0.d0
+    energy = 0.d0 
     virial = 0.d0 
     do i = 1, natom-1
       dvir = 0.d0 
       ea(i) = 0.d0
       do j = i+1, natom
         nj = j
-        prm1 = sqrt(params(atp(i), 2)*params(atp(nj), 2))
-        prm2 = 0.5d0*(params(atp(i), 3)+params(atp(nj), 3))
+        prm1 = sqrt(params(atp(i), 3)*params(atp(nj), 3))
+        prm2 = 0.5d0*(params(atp(i), 4)+params(atp(nj), 4))
 !      do j = 1, nlist(i) 
 !        nj = ilist(i,j)
         dx = rx(nj)-rx(i)
@@ -107,26 +106,51 @@ contains
         ea(i) = ea(i)+epot
         dvir = dvir+fr*dr**2.0d0 
         end do
-      energy = energy+ea(i)
-      virial = virial+dvir
+        energy = energy + ea(i)
+        virial = virial + dvir
     end do 
+
+    call vdw_corr
+
+  end subroutine vdw
+!
+  subroutine vdw_corr
+
+    implicit none
+    integer :: i, j
+    real(8) :: prm1, prm2, encorr, vircorr, pi, drmin 
 
     drmin = min(cell(1), cell(2), cell(3))
     drmin = 0.5d0*drmin
 
-!    encorr = 4.0d0*params(1, 3)*(params(1, 4)**12/(9.0d0*drmin**9)-params(1, 4)**6/(3.d0*drmin**3)) 
-!    vircorr = -24.0d0*params(1, 3)*(2.0d0*params(1, 4)**12/(9.0d0*drmin**9)-params(1, 4)**6/(3.d0*drmin**3)) 
+    pi = acos(-1.d0)
+
+    encorr = 0.d0 
+    vircorr = 0.d0 
+    do i = 1, size(nsite)
+      do j = 1, size(nsite)
+        prm1 = sqrt(params(atp(i), 3)*params(atp(j), 3))
+        prm2 = 0.5d0*(params(atp(i), 4)+params(atp(j), 4))
+        encorr = encorr+4.0d0*prm1*(prm2**12/(9.0d0*drmin**9)-prm2**6/(3.d0*drmin**3))
+        vircorr = vircorr-24.0d0*prm1*(2.0d0*prm2**12/(9.0d0*drmin**9)-prm2**6/(3.d0*drmin**3))
+      end do 
+    end do 
+!    do i = 1, natom-1 
+!      do j = i+1, natom 
+!        prm1 = sqrt(params(atp(i), 2)*params(atp(j), 2))
+!        prm2 = 0.5d0*(params(atp(i), 3)+params(atp(j), 3))
+!        encorr = encorr+4.0d0*prm1*(prm2**12/(9.0d0*drmin**9)-prm2**6/(3.d0*drmin**3))
+!        vircorr = vircorr-24.0d0*prm1*(2.0d0*prm2**12/(9.0d0*drmin**9)-prm2**6/(3.d0*drmin**3))
+!      end do 
+!    end do 
 !
-!    encorr = 2.0d0*3.141593d0*natom*natom*encorr/(cell(1)*cell(2)*cell(3))
-!    vircorr = 2.0d0*3.141593d0*natom*natom*vircorr/(cell(1)*cell(2)*cell(3))
+    encorr = 2.0d0*pi*encorr/(cell(1)*cell(2)*cell(3))
+    vircorr = 2.0d0*pi*vircorr/(cell(1)*cell(2)*cell(3))
 
-    encorr = 0.0d0 
-    vircorr = 0.0d0 
+    energy = energy + encorr
+    virial = virial + vircorr
 
-    energy = energy+encorr
-    virial = virial+vircorr
-
-  end subroutine vdw
+  end subroutine vdw_corr
 !
 !-Neighbours list subroutine function
 !

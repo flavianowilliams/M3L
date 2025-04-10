@@ -41,6 +41,7 @@ class Ensemble(Constants):
         libs.pstat = self.pstat
         libs.press_bath = self.press_bath
         libs.cell = self.cell
+        libs.nsite = self.nsite
 
         libs.params = self.force_field 
 

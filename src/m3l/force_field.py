@@ -27,7 +27,7 @@ class ForceField(Constants):
 
                 self.params = np.append(self.params, [args[indx]], axis = 0)
 
-        self.params = np.delete(self.params, 0, axis = 1)
+#        self.params = np.delete(self.params, 0, axis = 1)
 
     def interaction(self, system, potential):
 
