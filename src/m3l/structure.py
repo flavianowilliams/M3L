@@ -28,15 +28,20 @@ class Atom(Constants):
 
 class System2(Constants):
 
-    def __init__(self, cell, temperature, pressure, epotential, ekinetic, mat, atp, rx, ry, rz, vx, vy, vz, fx, fy, fz, ea):
+    def __init__(self, description, cell, temperature, pressure, epotential, ekinetic, nsites, sites, molecules, mat, atp, chg, rx, ry, rz, vx, vy, vz, fx, fy, fz, ea):
         
+        self.description = description
         self.cell = cell
         self.temperature = temperature
         self.pressure = pressure
         self.epotential = epotential
         self.ekinetic = ekinetic
+        self.nsites = nsites
+        self.sites = sites
+        self.molecules = molecules
         self.mat = mat
         self.atp = atp
+        self.chg = chg
         self.rx = rx
         self.ry = ry
         self.rz = rz
@@ -102,8 +107,9 @@ class System2(Constants):
     def save(self, filename = 'system.json'):
 
         atoms = np.array([[
-                self.mat[0],
                 self.atp[0],
+                self.mat[0],
+                self.chg[0],
                 self.rx[0],
                 self.ry[0],
                 self.rz[0],
@@ -119,8 +125,9 @@ class System2(Constants):
         for i in range(1, len(self.mat)):
 
             atoms = np.append(atoms, [[
-                self.mat[i],
                 self.atp[i],
+                self.mat[i],
+                self.chg[i],
                 self.rx[i],
                 self.ry[i],
                 self.rz[i],
@@ -134,7 +141,9 @@ class System2(Constants):
                 ]], axis = 0)
 
         dictfile = {
+                'description': self.description,
                 'cell': self.cell.tolist(),
+                'molecules': self.molecules.tolist(),
                 'thermodynamic': [
                     self.temperature.item(),
                     self.pressure.item(),
@@ -150,20 +159,25 @@ class System2(Constants):
 
 class System(Constants):
 
+    sites = np.array([], dtype = np.float64)
+
     def loadSystem(self, filename):
 
         with open(filename, 'r') as file:
             json_file = json.load(file)
+            self.description = json_file['description']
             self.cell = np.array(json_file['cell'], dtype=np.float64)
             self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float64)
             self.pressure = np.array(json_file['thermodynamic'][1], dtype=np.float64)
             self.epotential = np.array(json_file['thermodynamic'][2], dtype=np.float64)
             self.ekinetic = np.array(json_file['thermodynamic'][3], dtype=np.float64)
+            self.molecules = np.array(json_file['molecules'], dtype=np.int32)
 
-            atoms = np.array(json_file['atoms'], dtype=np.float64)
+            self.atoms = np.array(json_file['atoms'], dtype=np.float64)
 
-            self.mat = np.array([])
             self.atp = np.array([])
+            self.mat = np.array([])
+            self.chg = np.array([])
             self.rx = np.array([])
             self.ry = np.array([])
             self.rz = np.array([])
@@ -175,20 +189,21 @@ class System(Constants):
             self.fz = np.array([])
             self.ea = np.array([])
 
-            for atom in atoms:
+            for atom in self.atoms:
 
-                self.mat = np.append(self.mat, atom[0])
-                self.atp = np.append(self.atp, atom[1])
-                self.rx = np.append(self.rx, atom[2])
-                self.ry = np.append(self.ry, atom[3])
-                self.rz = np.append(self.rz, atom[4])
-                self.vx = np.append(self.vx, atom[5])
-                self.vy = np.append(self.vy, atom[6])
-                self.vz = np.append(self.vz, atom[7])
-                self.fx = np.append(self.fx, atom[8])
-                self.fy = np.append(self.fy, atom[9])
-                self.fz = np.append(self.fz, atom[10])
-                self.ea = np.append(self.ea, atom[11])
+                self.atp = np.append(self.atp, atom[0])
+                self.mat = np.append(self.mat, atom[1])
+                self.chg = np.append(self.chg, atom[2])
+                self.rx = np.append(self.rx, atom[3])
+                self.ry = np.append(self.ry, atom[4])
+                self.rz = np.append(self.rz, atom[5])
+                self.vx = np.append(self.vx, atom[6])
+                self.vy = np.append(self.vy, atom[7])
+                self.vz = np.append(self.vz, atom[8])
+                self.fx = np.append(self.fx, atom[9])
+                self.fy = np.append(self.fy, atom[10])
+                self.fz = np.append(self.fz, atom[11])
+                self.ea = np.append(self.ea, atom[12])
 
         self.setSites()
 
@@ -196,53 +211,38 @@ class System(Constants):
 
         self.atp = np.array(self.atp, dtype = np.int32)
 
-#    def loadSystem2(self, filename):
-#
-#        with open(filename, 'r') as file:
-#            json_file = json.load(file)
-#            self.cell = np.array(json_file['cell'], dtype=np.float64)
-#            self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float64)
-#            self.pressure = np.array(json_file['thermodynamic'][1], dtype=np.float64)
-#            self.epotential = np.array(json_file['thermodynamic'][2], dtype=np.float64)
-#            self.ekinetic = np.array(json_file['thermodynamic'][3], dtype=np.float64)
-#            self.mat = np.array(json_file['mat'], dtype=np.float64)
-#            self.atp = np.array(json_file['atp'], dtype=np.int32)
-#            self.rx = np.array(json_file['rx'], dtype=np.float64)
-#            self.ry = np.array(json_file['ry'], dtype=np.float64)
-#            self.rz = np.array(json_file['rz'], dtype=np.float64)
-#            self.vx = np.array(json_file['vx'], dtype=np.float64)
-#            self.vy = np.array(json_file['vy'], dtype=np.float64)
-#            self.vz = np.array(json_file['vz'], dtype=np.float64)
-#            self.fx = np.array(json_file['fx'], dtype=np.float64)
-#            self.fy = np.array(json_file['fy'], dtype=np.float64)
-#            self.fz = np.array(json_file['fz'], dtype=np.float64)
-#            self.ea = np.array(json_file['ea'], dtype=np.float64)
+    def setSystem(self, description, temperature, pressure, cell, molecules, atoms):
 
-    def setSystem(self, temperature, pressure, cell, atoms):
-
+        self.description = description
         self.temperature = np.array(temperature, dtype = np.float64)
         self.pressure = np.array(pressure, dtype = np.float64)
         self.cell = np.array(cell, dtype = np.float64)
         self.epotential = np.array(0.0, dtype = np.float64)
+        self.molecules = np.array(molecules, np.int32)
 
-        mat = []
+        self.atoms = np.array([[]], dtype = np.float64)
+
         atp = []
+        mat = []
+        chg = []
         rx = []
         ry = []
         rz = []
         for atom in atoms:
-           mat.append(atom[0])
-           atp.append(atom[1])
-           rx.append(atom[2])
-           ry.append(atom[3])
-           rz.append(atom[4])
+           atp.append(atom[0])
+           chg.append(atom[1])
+           mat.append(atom[2])
+           rx.append(atom[3])
+           ry.append(atom[4])
+           rz.append(atom[5])
 
         natoms = len(atoms)
 
         self.setEkinetic(natoms)
 
-        self.mat = np.array(mat, dtype = np.float64)
         self.atp = np.array(atp, dtype = np.int32)
+        self.mat = np.array(mat, dtype = np.float64)
+        self.chg = np.array(chg, dtype = np.float64)
         self.rx = np.array(rx, dtype = np.float64)
         self.ry = np.array(ry, dtype = np.float64)
         self.rz = np.array(rz, dtype = np.float64)
@@ -262,17 +262,17 @@ class System(Constants):
 
     def setSites(self):
 
-        self.site = np.array([], dtype = np.int32)
+#        self.sites = np.array([], dtype = np.int32)
+
+        list_ = []
 
         for item in self.atp:
 
-            if item not in self.site:
+            if item not in list_:
 
-                self.site = np.append(self.site, item)
+                list_.append(item)
 
-        self.nsite = np.array([], dtype = np.int32)
-
-        for site in self.site:
+        for site in list_:
 
             nx = 0 
 
@@ -282,7 +282,15 @@ class System(Constants):
 
                     nx += 1 
 
-            self.nsite = np.append(self.nsite, nx)
+            if self.sites.size == 0:
+
+                self.sites = np.array([[site, nx]], dtype = np.int32)
+
+            else:
+
+                self.sites = np.append([self.sites], [site, nx], axis = 0)
+
+        self.nsites = len(self.sites)
 
     def convertUnits(self):
 
@@ -332,8 +340,9 @@ class System(Constants):
     def save(self, filename = 'system.json'):
 
         atoms = np.array([[
-                self.mat[0],
                 self.atp[0],
+                self.mat[0],
+                self.chg[0],
                 self.rx[0],
                 self.ry[0],
                 self.rz[0],
@@ -349,8 +358,9 @@ class System(Constants):
         for i in range(1, len(self.mat)):
 
             atoms = np.append(atoms, [[
-                self.mat[i],
                 self.atp[i],
+                self.mat[i],
+                self.chg[i],
                 self.rx[i],
                 self.ry[i],
                 self.rz[i],
@@ -364,6 +374,7 @@ class System(Constants):
                 ]], axis = 0)
 
         dictfile = {
+                'description': self.description,
                 'cell': self.cell.tolist(),
                 'thermodynamic': [
                     self.temperature.item(),
@@ -371,6 +382,7 @@ class System(Constants):
                     self.epotential.item(),
                     self.ekinetic.item()
                     ],
+                'molecules': self.molecules.tolist(),
                 'atoms': atoms.tolist()
                 }
 

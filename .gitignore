@@ -135,3 +135,6 @@ dmypy.json
 >>>>>>> development
 # Recovery codes
 testPyPI-recovery_codes.txt
+
+# R script
+*.R

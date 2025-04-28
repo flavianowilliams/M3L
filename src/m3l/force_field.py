@@ -4,30 +4,28 @@ from m3l.utils import Constants
 
 class ForceField(Constants):
 
-    params = np.array([], dtype = np.float64)
+    prms = np.array([np.zeros(4)], dtype = np.float64)
+    vdw = np.array([])
 
-    def potential(self, *args):
+    def structure(self, *args):
 
-        list_ = []
         for arg in args:
 
-            list_.append(arg[0])
+            if self.vdw.size == 0:
 
-        list_.sort()
+                self.vdw = np.array(arg, dtype = np.float64)
 
-        for i, arg in enumerate(args):
-
-            indx = list_.index(arg[0])
-
-            if self.params.size == 0:
-
-                self.params = np.array([args[indx]], dtype = np.float64)
-            
             else:
 
-                self.params = np.append(self.params, [args[indx]], axis = 0)
+                self.vdw = np.append(self.vdw, arg, axis = 0)
 
-#        self.params = np.delete(self.params, 0, axis = 1)
+    def intermolecular(self, **kwargs):
+
+        self.prms[0, 0] = kwargs['rvdw']
+
+    def molecule(self, *args):
+
+        return args
 
     def interaction(self, system, potential):
 
@@ -48,7 +46,13 @@ class ForceField(Constants):
 
         return system
 
+    def hook(self):
+
+        self.params = np.append(self.prms, self.vdw, axis = 0)
+
     def __call__(self):
+
+        self.hook()
 
         return self.params
 

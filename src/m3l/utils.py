@@ -26,8 +26,9 @@ class Constants():
     PCONV = np.array(PCONV/(HARTREE/A0**3), dtype = np.float64)    # Pascal => Hartree/a0**3
 
     # Other conversion
-    TEMPCONV = np.array(KB/HARTREE, dtype = np.float64)            # J/K => Hartree/K
+    TEMPCONV = np.array(KB/HARTREE, dtype = np.float64)            # 
     KB = np.array(1.0, dtype = np.float64)                         # J/K => Hartree/K
+    CHG = np.array(1.0, dtype = np.float64)                         # Coulomb => a.u.
 
     # Inverted conversion
 
