@@ -21,7 +21,7 @@ class ForceField(Constants):
 
     def intermolecular(self, **kwargs):
 
-        self.prms[0, 0] = kwargs['rvdw']
+        self.prms[0, 0] = kwargs['rvdw']*self.ACONV
 
     def molecule(self, *args):
 
@@ -56,9 +56,14 @@ class ForceField(Constants):
 
         return self.params
 
-class Intermolecular(Constants):
+class Intermolecular():
 
     def site(indx, charge, eps, sigma):
+
+        utls = Constants()
+
+        eps = eps*utls.ECONV
+        sigma = sigma*utls.ACONV
 
         return np.array([indx, charge, eps, sigma], dtype = np.float64)
 

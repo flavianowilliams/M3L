@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "m3l"
-version = "2025.04.dev11"
+version = "2025.04.dev12"
 authors = [{name = "Flaviano Williams Fernandes", email = "flaviano.fernandes@ifpr.edu.br"}]
 description = "Machine Learning and Molecular Modelling"
 license = {text = "MIT"}

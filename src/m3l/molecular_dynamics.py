@@ -16,12 +16,12 @@ class Ensemble(Constants):
         if tstat:
             self.tstat = np.array(tstat*self.TIMECONV, dtype = np.float64)
         else:
-            self.tstat = np.array(0.1*self.TIMECONV, dtype = np.float64)
+            self.tstat = np.array(1.0*self.TIMECONV, dtype = np.float64)
 
         if pstat:
             self.pstat = np.array(pstat*self.TIMECONV, dtype = np.float64)
         else:
-            self.pstat = np.array(0.1*self.TIMECONV, dtype = np.float64)
+            self.pstat = np.array(1.0*self.TIMECONV, dtype = np.float64)
 
         if temp_bath:
             self.temp_bath = np.array(temp_bath*self.TEMPCONV, dtype = np.float64)
