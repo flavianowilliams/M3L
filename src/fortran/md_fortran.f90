@@ -3,7 +3,7 @@ module Libs
   integer, allocatable, dimension(:) :: nlist, atp
   integer, allocatable, dimension(:,:) :: ilist, molecules, sites 
   real(8) :: timestep, tstat, pstat, bfactor, temp_bath, press_bath, friction
-  real(8) :: ekinetic, energy, temperature, pressure, virial, rvdw 
+  real(8) :: ekinetic, energy, temperature, pressure, virial, rvdw, temp_friction, press_friction, volume 
   real(8), dimension(3) :: cell
   real(8), allocatable, dimension(:, :) :: params
   real(8), allocatable, dimension(:) :: mass 
@@ -318,6 +318,14 @@ contains
 
   end subroutine ccp
 !
+!-Update volume 
+!
+  subroutine setVolume()
+
+    volume = cell(1)*cell(2)*cell(3)    
+
+  end subroutine
+!
 !-Ensemble nvt berendsen
 !
   subroutine ekinetic_func()
@@ -351,22 +359,6 @@ contains
     pressure = (2.0d0*ekinetic+virial)/(3.0d0*volume)
 
   end subroutine pressure_func
-!
-!- calculando deslocamento maximo
-!
-!  subroutine drmax_func
-!
-!    implicit none
-!    integer :: i 
-!    real(8) vr 
-!
-!    drmax = 0.0d0
-!    do i = 1, natom
-!      vr = sqrt(vx(i)**2+vy(i)**2+vz(i)**2)
-!      drmax = max(drmax, vr*timestep)
-!    end do
-!
-!  end subroutine drmax_func
 !
 !-Ensemble nvt berendsen
 !
@@ -422,6 +414,38 @@ contains
     friction = friction+0.25d0*timestep*(ekinetic-sigma)/(sigma*tstat**2)
 
   end subroutine friction_func
+
+  subroutine setTempFriction
+
+    implicit none
+
+    real(8) :: term_mass, bar_mass, func
+
+    term_mass = nfree*temp_bath*tstat**2.d0 
+    bar_mass = nfree*temp_bath*pstat**2.0d0
+
+    func = 0.5d0*timestep*(nfree*(temperature-temp_bath)+(bar_mass*press_friction**2.0d0-temp_bath))/term_mass
+
+    temp_friction = temp_friction+func
+
+  end subroutine setTempFriction
+
+  subroutine press_friction_func
+
+    implicit none
+
+    real(8) :: volume, term_mass, bar_mass, func
+
+    term_mass = nfree*temp_bath*tstat**2.d0 
+    bar_mass = nfree*temp_bath*pstat**2.0d0
+
+    volume = cell(1)*cell(2)*cell(3)
+
+    func = 0.5d0*timestep*(3.0d0*volume*(pressure-press_bath)/bar_mass-temp_friction*press_friction)
+
+    press_friction = press_friction + func
+
+  end subroutine press_friction_func
 
   subroutine eta_func(eta)
 
@@ -504,6 +528,7 @@ contains
       cell(i) = cell(i)*eta 
     end do 
 
+    call setVolume
     call ccp
     call forces
 
@@ -529,5 +554,41 @@ contains
     call pressure_func
 
   end subroutine npt_berendsen
+
+  subroutine npt_hoover
+
+    implicit none
+
+    integer :: i
+
+    call setTempFriction
+
+    do i = 1, natom 
+      vx(i) = vx(i)-0.5d0*timestep*temp_friction*vx(i)
+      vy(i) = vy(i)-0.5d0*timestep*temp_friction*vy(i)
+      vz(i) = vz(i)-0.5d0*timestep*temp_friction*vz(i)
+    end do 
+
+    call press_friction_func
+    
+    do i = 1, natom 
+      vx(i) = vx(i)-0.5d0*timestep*temp_friction*vx(i)
+      vy(i) = vy(i)-0.5d0*timestep*temp_friction*vy(i)
+      vz(i) = vz(i)-0.5d0*timestep*temp_friction*vz(i)
+    end do 
+
+    do i = 1, natom 
+      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+    end do 
+
+    do i = 1, natom 
+      rx(i) = rx(i)+vx(i)*timestep
+      ry(i) = ry(i)+vy(i)*timestep
+      rz(i) = rz(i)+vz(i)*timestep
+    end do 
+
+  end subroutine npt_hoover
 
 end module Libs
