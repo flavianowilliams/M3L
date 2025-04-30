@@ -148,10 +148,10 @@ class System(Constants):
     press_friction = np.array([], dtype = np.float64)
     epotential = np.array([], dtype = np.float64)
     ekinetic = np.array([], dtype = np.float64)
-    molecules = np.array([], dtype = np.int32)
+    molecule = np.array([], dtype = np.int32)
     sites = np.array([], dtype = np.int32)
     nsites = np.array([], dtype = np.int32)
-    atoms = np.array([], dtype = np.float64)
+    atom = np.array([], dtype = np.float64)
     volume = np.array([], dtype = np.float64)
     atp = np.array([], dtype = np.float64)
     mat = np.array([], dtype = np.float64)
@@ -179,9 +179,9 @@ class System(Constants):
             self.press_friction = np.array(json_file['thermodynamic'][3], dtype=np.float64)
             self.epotential = np.array(json_file['thermodynamic'][4], dtype=np.float64)
             self.ekinetic = np.array(json_file['thermodynamic'][5], dtype=np.float64)
-            self.molecules = np.array(json_file['molecules'], dtype=np.int32)
+            self.molecule = np.array(json_file['molecule'], dtype=np.int32)
 
-            self.atoms = np.array(json_file['atoms'], dtype=np.float64)
+            self.atom = np.array(json_file['atom'], dtype=np.float64)
 
             self.atp = np.array([])
             self.mat = np.array([])
@@ -197,7 +197,7 @@ class System(Constants):
             self.fz = np.array([])
             self.ea = np.array([])
 
-            for atom in self.atoms:
+            for atom in self.atom:
 
                 self.atp = np.append(self.atp, atom[0])
                 self.mat = np.append(self.mat, atom[1])
@@ -215,6 +215,8 @@ class System(Constants):
 
         self.setSites()
 
+        self.setNatom(len(self.atom))
+
         self.setVolume()
 
 # convertendo datatypes
@@ -230,9 +232,9 @@ class System(Constants):
         self.press_friction = np.array(0.0, dtype = np.float64)
         self.cell = np.array(cell, dtype = np.float64)
         self.epotential = np.array(0.0, dtype = np.float64)
-        self.molecules = np.array(molecules, np.int32)
+        self.molecule = np.array(molecule, np.int32)
 
-        self.atoms = np.array([[]], dtype = np.float64)
+        self.atom = np.array([[]], dtype = np.float64)
 
         atp = []
         mat = []
@@ -250,6 +252,8 @@ class System(Constants):
 
         natoms = len(atoms)
 
+        self.setNatom(natoms)
+
         self.setEkinetic(natoms)
 
         self.atp = np.array(atp, dtype = np.int32)
@@ -265,6 +269,12 @@ class System(Constants):
         self.fy = np.zeros(natoms)
         self.fz = np.zeros(natoms)
         self.ea = np.zeros(natoms)
+
+    def setNatom(self, natoms):
+
+        self.natom = natoms
+
+        return self.natom
 
     def setVolume(self):
 
@@ -407,41 +417,13 @@ class System(Constants):
                     self.epotential.item(),
                     self.ekinetic.item()
                     ],
-                'molecules': self.molecules.tolist(),
-                'atoms': atoms.tolist()
+                'molecule': self.molecule.tolist(),
+                'atom': atoms.tolist()
                 }
 
         outfile = json.dumps(dictfile, indent = 1)
         with open(filename, 'w') as file:
             file.write(outfile)
-
-#    def save(self, filename = 'system.json'):
-#
-#        dictfile = {
-#                'cell': self.cell.tolist(),
-#                'thermodynamic': [
-#                    self.temperature.item(),
-#                    self.pressure.item(),
-#                    self.epotential.item(),
-#                    self.ekinetic.item()
-#                    ],
-#                'mat': self.mat.tolist(),
-#                'atp': self.atp.tolist(),
-#                'rx': self.rx.tolist(),
-#                'ry': self.ry.tolist(),
-#                'rz': self.rz.tolist(),
-#                'vx': self.vx.tolist(),
-#                'vy': self.vy.tolist(),
-#                'vz': self.vz.tolist(),
-#                'fx': self.fx.tolist(),
-#                'fy': self.fy.tolist(),
-#                'fz': self.fz.tolist(),
-#                'ea': self.ea.tolist(),
-#                }
-#
-#        outfile = json.dumps(dictfile, indent = 1)
-#        with open(filename, 'w') as file:
-#            file.write(outfile)
 
 #class Symmetry(System):
 #

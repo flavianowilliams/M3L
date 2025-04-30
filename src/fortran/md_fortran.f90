@@ -5,7 +5,7 @@ module Libs
   real(8) :: timestep, tstat, pstat, bfactor, temp_bath, press_bath, friction
   real(8) :: ekinetic, energy, temperature, pressure, virial, rvdw, temp_friction, press_friction, volume 
   real(8), dimension(3) :: cell
-  real(8), allocatable, dimension(:, :) :: params
+  real(8), allocatable, dimension(:, :) :: params, atom
   real(8), allocatable, dimension(:) :: mass 
   real(8), allocatable, dimension(:) :: rx, ry, rz 
   real(8), allocatable, dimension(:) :: vx, vy, vz 

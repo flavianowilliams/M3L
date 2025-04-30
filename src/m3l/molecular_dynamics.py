@@ -99,7 +99,6 @@ class Ensemble(Constants):
     def npt_verlet(self):
 
         libs.nfree = self.nfree
-        libs.natom = self.natom
         libs.timestep = self.dtimestep
         libs.bfactor = self.bfactor
         libs.tstat = self.tstat
@@ -110,12 +109,14 @@ class Ensemble(Constants):
         libs.nvdw = len(self.force_field)-1
         libs.rvdw = self.force_field[0, 0]
 
+        libs.atom = self.sys.atom
+        libs.natom = self.sys.natom
         libs.cell = self.sys.cell
         libs.volume = self.sys.volume
         libs.sites = self.sys.sites
         libs.nsites = self.sys.nsites
-        libs.nmolecules = len(self.sys.molecules)
-        libs.molecules = self.sys.molecules
+        libs.nmolecules = len(self.sys.molecule)
+        libs.molecules = self.sys.molecule
 
         libs.mass = self.sys.mat
         libs.rx = self.sys.rx
@@ -144,9 +145,11 @@ class Ensemble(Constants):
         self.sys.description = description
         self.sys.cell = libs.cell
         self.sys.volume = libs.volume
+        self.sys.atom = libs.atom
+        self.sys.natom = libs.natom
         self.sys.sites = libs.sites
         self.sys.nsites = libs.nsites
-        self.sys.molecules = libs.molecules
+        self.sys.molecule = libs.molecules
         
         self.sys.mat = libs.mass
         self.sys.atp = libs.atp 
@@ -184,8 +187,7 @@ class Ensemble(Constants):
 #        self.press_friction = system.press_friction
 #        self.epotential = system.epotential
 #        self.ekinetic = system.ekinetic
-        self.natom = len(self.sys.mat)
-        self.nfree = 3*(self.natom-1)
+        self.nfree = 3*(system.natom-1)
 #        self.nsites = system.nsites
 #        self.sites = system.sites
 #        self.molecules = system.molecules
