@@ -1,15 +1,11 @@
 module Libs 
   integer :: natom, nmolecules, nsites, nvdw, nfree
-  integer, allocatable, dimension(:) :: nlist, atp
+  integer, allocatable, dimension(:) :: nlist
   integer, allocatable, dimension(:,:) :: ilist, molecules, sites 
   real(8) :: timestep, tstat, pstat, bfactor, temp_bath, press_bath, friction
   real(8) :: ekinetic, energy, temperature, pressure, virial, rvdw, temp_friction, press_friction, volume 
   real(8), dimension(3) :: cell
   real(8), allocatable, dimension(:, :) :: params, atom
-  real(8), allocatable, dimension(:) :: mass 
-  real(8), allocatable, dimension(:) :: rx, ry, rz 
-  real(8), allocatable, dimension(:) :: vx, vy, vz 
-  real(8), allocatable, dimension(:) :: fx, fy, fz, ea
 contains
 !
 !- preparing variables
@@ -107,7 +103,7 @@ contains
       p1a = 0.d0
       p2a = 0.d0 
       do k = 1, nvdw 
-        if(int(params(k+1, 1)).eq.atp(i))then
+        if(int(params(k+1, 1)).eq.int(atom(i, 1)))then
           p1a = params(k+1, 3)
           p2a = params(k+1, 4)
         end if 
@@ -117,7 +113,7 @@ contains
         p1b = 0.d0 
         p2b = 0.d0
         do k = 1, nvdw 
-          if(int(params(k+1, 1)).eq.atp(nj))then
+          if(int(params(k+1, 1)).eq.int(atom(nj, 1)))then
             p1b = params(k+1, 3)
             p2b = params(k+1, 4)
           end if 
@@ -144,33 +140,6 @@ contains
       energy = energy + atom(i, 13)
       virial = virial + dvir
     end do
-    !    do i = 1, natom-1
-!      dvir = 0.d0 
-!      ea(i) = 0.d0
-!      do j = i+1, natom
-!        nj = j
-!        prm1 = sqrt(params(atp(i)+1, 3)*params(atp(nj)+1, 3))
-!        prm2 = 0.5d0*(params(atp(i)+1, 4)+params(atp(nj)+1, 4))
-!        dx = rx(nj)-rx(i)
-!        dy = ry(nj)-ry(i)
-!        dz = rz(nj)-rz(i)
-!        call mic(dx, dy, dz)
-!        dr = sqrt(dx**2.0d0+dy**2.0d0+dz**2.0d0)
-!        depot = (prm2/dr)**6.0d0 
-!        epot = 4.0d0*prm1*(depot-1.0d0)*depot
-!        fr = 24.d0*prm1*(2.d0*depot-1.d0)*depot/dr**2.0d0 
-!        fx(i) = fx(i)-fr*dx
-!        fy(i) = fy(i)-fr*dy
-!        fz(i) = fz(i)-fr*dz
-!        fx(nj) = fx(nj)+fr*dx
-!        fy(nj) = fy(nj)+fr*dy
-!        fz(nj) = fz(nj)+fr*dz
-!        ea(i) = ea(i)+epot
-!        dvir = dvir+fr*dr**2.0d0 
-!        end do
-!        energy = energy + ea(i)
-!        virial = virial + dvir
-!    end do 
 
     call vdw_corr
 
@@ -186,14 +155,6 @@ contains
 
     encorr = 0.d0 
     vircorr = 0.d0 
-!    do i = 1, natom-1 
-!      do j = i+1, natom 
-!        prm1 = sqrt(params(2, 3)*params(2, 3))
-!        prm2 = 0.5d0*(params(2, 4)+params(2, 4))
-!        encorr = encorr+4.0d0*prm1*(prm2**12/(9.0d0*rvdw**9)-prm2**6/(3.d0*rvdw**3))
-!        vircorr = vircorr-24.0d0*prm1*(2.0d0*prm2**12/(9.0d0*rvdw**9)-prm2**6/(3.d0*rvdw**3))
-!      end do 
-!    end do 
 
     do i = 1, nsites
       prm1a = 0.d0 
@@ -352,10 +313,7 @@ contains
   subroutine pressure_func
 
     implicit none 
-    real(8) :: volume 
     
-    volume = cell(1)*cell(2)*cell(3)
-
     pressure = (2.0d0*ekinetic+virial)/(3.0d0*volume)
 
   end subroutine pressure_func
@@ -434,7 +392,7 @@ contains
 
     implicit none
 
-    real(8) :: volume, term_mass, bar_mass, func
+    real(8) :: term_mass, bar_mass, func
 
     term_mass = nfree*temp_bath*tstat**2.d0 
     bar_mass = nfree*temp_bath*pstat**2.0d0

@@ -118,25 +118,45 @@ class Ensemble(Constants):
         libs.nmolecules = len(self.sys.molecule)
         libs.molecules = self.sys.molecule
 
-        libs.mass = self.sys.mat
-        libs.rx = self.sys.rx
-        libs.ry = self.sys.ry
-        libs.rz = self.sys.rz
-        libs.vx = self.sys.vx
-        libs.vy = self.sys.vy
-        libs.vz = self.sys.vz
-        libs.fx = self.sys.fx
-        libs.fy = self.sys.fy
-        libs.fz = self.sys.fz
-        libs.ea = self.sys.ea
-        libs.atp = self.sys.atp
+#        libs.mass = self.sys.mat
+#        libs.rx = self.sys.rx
+#        libs.ry = self.sys.ry
+#        libs.rz = self.sys.rz
+#        libs.vx = self.sys.vx
+#        libs.vy = self.sys.vy
+#        libs.vz = self.sys.vz
+#        libs.fx = self.sys.fx
+#        libs.fy = self.sys.fy
+#        libs.fz = self.sys.fz
+#        libs.ea = self.sys.ea
+#        libs.atp = self.sys.atp
 
         libs.prepare()
         libs.npt_berendsen()
 
-        self.updateSystem()
+    def hook(self, system):
 
-    def updateSystem(self):
+        self.sys = system
+        self.nfree = 3*(system.natom-1)
+
+# retirar esta parte!
+##################################
+        self.mat = self.sys.mat
+        self.atp = self.sys.atp 
+        self.chg = self.sys.chg
+        self.rx = self.sys.rx
+        self.ry = self.sys.ry
+        self.rz = self.sys.rz
+        self.vx = self.sys.vx
+        self.vy = self.sys.vy
+        self.vz = self.sys.vz
+        self.fx = self.sys.fx
+        self.fy = self.sys.fy
+        self.fz = self.sys.fz
+        self.ea = self.sys.ea
+#################################3
+
+    def hook_output(self):
 
         description = self.sys.description
 
@@ -151,19 +171,22 @@ class Ensemble(Constants):
         self.sys.nsites = libs.nsites
         self.sys.molecule = libs.molecules
         
-        self.sys.mat = libs.mass
-        self.sys.atp = libs.atp 
+# retirar esta parte!
+##################################
+        self.sys.mat = self.mat
+        self.sys.atp = self.atp 
         self.sys.chg = self.chg
-        self.sys.rx = libs.rx
-        self.sys.ry = libs.ry
-        self.sys.rz = libs.rz
-        self.sys.vx = libs.vx
-        self.sys.vy = libs.vy
-        self.sys.vz = libs.vz
-        self.sys.fx = libs.fx
-        self.sys.fy = libs.fy
-        self.sys.fz = libs.fz
-        self.sys.ea = libs.ea
+        self.sys.rx = self.rx
+        self.sys.ry = self.ry
+        self.sys.rz = self.rz
+        self.sys.vx = self.vx
+        self.sys.vy = self.vy
+        self.sys.vz = self.vz
+        self.sys.fx = self.fx
+        self.sys.fy = self.fy
+        self.sys.fz = self.fz
+        self.sys.ea = self.ea
+##################################
 
         self.sys.temperature = libs.temperature
         self.sys.temp_friction = libs.temp_friction
@@ -174,67 +197,6 @@ class Ensemble(Constants):
         self.sys.ekinetic = libs.ekinetic
         self.sys.epotential = libs.energy
         self.sys.volume = libs.volume
-
-    def hook(self, system):
-
-        self.sys = system
-#        self.description = system.description
-#        self.cell = system.cell
-#        self.volume = system.volume
-#        self.temperature = system.temperature
-#        self.temp_friction = system.temp_friction
-#        self.pressure = system.pressure
-#        self.press_friction = system.press_friction
-#        self.epotential = system.epotential
-#        self.ekinetic = system.ekinetic
-        self.nfree = 3*(system.natom-1)
-#        self.nsites = system.nsites
-#        self.sites = system.sites
-#        self.molecules = system.molecules
-#
-#        self.mat = system.mat
-#        self.atp = system.atp
-        self.chg = system.chg
-#        self.rx = system.rx
-#        self.ry = system.ry
-#        self.rz = system.rz
-#        self.vx = system.vx
-#        self.vy = system.vy
-#        self.vz = system.vz
-#        self.fx = system.fx
-#        self.fy = system.fy
-#        self.fz = system.fz
-#        self.ea = system.ea
-
-    def hook_output(self):
-
-        #        context = System2(
-        #                self.description,
-        #                self.cell,
-        #                self.volume,
-        #                self.temperature,
-        #                self.temp_friction,
-        #                self.pressure,
-        #                self.press_friction,
-        #                self.epotential,
-        #                self.ekinetic,
-        #                self.nsites,
-        #                self.sites,
-        #                self.molecules,
-        #                self.mat,
-        #                self.atp,
-        #                self.chg,
-        #                self.rx,
-        #                self.ry,
-        #                self.rz,
-        #                self.vx,
-        #                self.vy,
-        #                self.vz,
-        #                self.fx,
-        #                self.fy,
-        #                self.fz,
-        #                self.ea,
-        #                )
 
         return self.sys
 
