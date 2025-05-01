@@ -40,10 +40,10 @@ contains
     integer :: i
 
     do i = 1, natom
-      fx(i) = 0.d0
-      fy(i) = 0.d0
-      fz(i) = 0.d0
-      ea(i) = 0.d0
+      atom(i, 10) = 0.d0
+      atom(i, 11) = 0.d0
+      atom(i, 12) = 0.d0
+      atom(i, 13) = 0.d0
     end do 
 
 !      call bonds
@@ -103,7 +103,7 @@ contains
     virial = 0.d0 
     do i = 1, size(nlist)
       dvir = 0.d0 
-      ea(i) = 0.d0
+      atom(i, 13) = 0.d0
       p1a = 0.d0
       p2a = 0.d0 
       do k = 1, nvdw 
@@ -124,24 +124,24 @@ contains
         end do 
         prm1 = sqrt(p1a*p1b)
         prm2 = 0.5d0*(p2a+p2b)
-        dx = rx(nj)-rx(i)
-        dy = ry(nj)-ry(i)
-        dz = rz(nj)-rz(i)
+        dx = atom(nj, 4)-atom(i, 4)
+        dy = atom(nj, 5)-atom(i, 5)
+        dz = atom(nj, 6)-atom(i, 6)
         call mic(dx, dy, dz)
         dr = sqrt(dx**2.0d0+dy**2.0d0+dz**2.0d0)
         depot = (prm2/dr)**6.0d0 
         epot = 4.0d0*prm1*(depot-1.0d0)*depot
         fr = 24.d0*prm1*(2.d0*depot-1.d0)*depot/dr**2.0d0 
-        fx(i) = fx(i)-fr*dx
-        fy(i) = fy(i)-fr*dy
-        fz(i) = fz(i)-fr*dz
-        fx(nj) = fx(nj)+fr*dx
-        fy(nj) = fy(nj)+fr*dy
-        fz(nj) = fz(nj)+fr*dz
-        ea(i) = ea(i)+epot
+        atom(i, 10) = atom(i, 10)-fr*dx
+        atom(i, 11) = atom(i, 11)-fr*dy
+        atom(i, 12) = atom(i, 12)-fr*dz
+        atom(nj, 10) = atom(nj, 10)+fr*dx
+        atom(nj, 11) = atom(nj, 11)+fr*dy
+        atom(nj, 12) = atom(nj, 12)+fr*dz
+        atom(i, 13) = atom(i, 13)+epot
         dvir = dvir+fr*dr**2.0d0 
       end do
-      energy = energy + ea(i)
+      energy = energy + atom(i, 13)
       virial = virial + dvir
     end do
     !    do i = 1, natom-1
@@ -253,9 +253,9 @@ contains
           do j1 = i1+1, molecules(i, 1)
             do j2 = 1, molecules(i, 2)
               p = gg+j2+(j1-1)*molecules(i, 2)
-              dx = rx(p)-rx(g)
-              dy = ry(p)-ry(g)
-              dz = rz(p)-rz(g)
+              dx = atom(p, 4)-atom(g, 4)
+              dy = atom(p, 5)-atom(g, 5)
+              dz = atom(p, 6)-atom(g, 6)
               call mic(dx, dy, dz)
               dr = sqrt(dx**2+dy**2+dz**2)
               if (dr.lt.rvdw) then
@@ -282,9 +282,9 @@ contains
             do j1 = 1, molecules(j, 1)
               do j2 = 1, molecules(j, 2)
                 p = pp+j2+(j1-1)*molecules(j, 2)
-                dx = rx(p)-rx(g)
-                dy = ry(p)-ry(g)
-                dz = rz(p)-rz(g)
+                dx = atom(p, 4)-atom(g, 4)
+                dy = atom(p, 5)-atom(g, 5)
+                dz = atom(p, 6)-atom(g, 6)
                 call mic(dx, dy, dz)
                 dr = sqrt(dx**2+dy**2+dz**2)
                 if (dr.lt.rvdw) then
@@ -311,9 +311,9 @@ contains
     integer :: i 
 
     do i = 1, natom
-      rx(i) = rx(i)-cell(1)*nint(rx(i)/cell(1))
-      ry(i) = ry(i)-cell(2)*nint(ry(i)/cell(2))
-      rz(i) = rz(i)-cell(3)*nint(rz(i)/cell(3))
+      atom(i, 4) = atom(i, 4)-cell(1)*nint(atom(i, 4)/cell(1))
+      atom(i, 5) = atom(i, 5)-cell(2)*nint(atom(i, 5)/cell(2))
+      atom(i, 6) = atom(i, 6)-cell(3)*nint(atom(i, 6)/cell(3))
     end do 
 
   end subroutine ccp
@@ -336,7 +336,7 @@ contains
 
     sum = 0.d0
     do i = 1, natom
-      sum = sum+mass(i)*(vx(i)**2+vy(i)**2+vz(i)**2)
+      sum = sum+atom(i, 2)*(atom(i, 7)**2+atom(i, 8)**2+atom(i, 9)**2)
     end do
 
     ekinetic = 0.5d0*sum
@@ -362,47 +362,47 @@ contains
 !
 !-Ensemble nvt berendsen
 !
-  subroutine nvt_berendsen
-
-    implicit none
-    integer :: i 
-    real(8) :: qui, sigma
-    
-    do i = 1, natom 
-      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
-      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
-      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
-      rx(i) = rx(i)+vx(i)*timestep
-      ry(i) = ry(i)+vy(i)*timestep
-      rz(i) = rz(i)+vz(i)*timestep
-
-    end do 
-
-    call ccp
-
-    call forces
-
-    do i = 1, natom
-      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
-      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
-      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
-    end do 
-
-    call ekinetic_func
-
-    sigma = 0.5d0*nfree*temp_bath
-    qui = sqrt(1.d0+timestep*(sigma/ekinetic-1.0d0)/tstat)
-
-    do i = 1, natom
-      vx(i) = vx(i)*qui
-      vy(i) = vy(i)*qui
-      vz(i) = vz(i)*qui
-    end do 
-
-    call ekinetic_func
-    call temperature_func
-
-  end subroutine nvt_berendsen
+!  subroutine nvt_berendsen
+!
+!    implicit none
+!    integer :: i 
+!    real(8) :: qui, sigma
+!    
+!    do i = 1, natom 
+!      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+!      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+!      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+!      rx(i) = rx(i)+vx(i)*timestep
+!      ry(i) = ry(i)+vy(i)*timestep
+!      rz(i) = rz(i)+vz(i)*timestep
+!
+!    end do 
+!
+!    call ccp
+!
+!    call forces
+!
+!    do i = 1, natom
+!      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+!      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+!      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+!    end do 
+!
+!    call ekinetic_func
+!
+!    sigma = 0.5d0*nfree*temp_bath
+!    qui = sqrt(1.d0+timestep*(sigma/ekinetic-1.0d0)/tstat)
+!
+!    do i = 1, natom
+!      vx(i) = vx(i)*qui
+!      vy(i) = vy(i)*qui
+!      vz(i) = vz(i)*qui
+!    end do 
+!
+!    call ekinetic_func
+!    call temperature_func
+!
+!  end subroutine nvt_berendsen
 
   subroutine friction_func
 
@@ -439,8 +439,6 @@ contains
     term_mass = nfree*temp_bath*tstat**2.d0 
     bar_mass = nfree*temp_bath*pstat**2.0d0
 
-    volume = cell(1)*cell(2)*cell(3)
-
     func = 0.5d0*timestep*(3.0d0*volume*(pressure-press_bath)/bar_mass-temp_friction*press_friction)
 
     press_friction = press_friction + func
@@ -456,56 +454,56 @@ contains
 
   end subroutine eta_func
 
-  subroutine nvt_hoover
-
-    implicit none
-    integer :: i 
-    
-    call ekinetic_func
-    call friction_func
-
-    do i = 1, natom 
-      vx(i) = vx(i)*exp(-0.5d0*timestep*friction)
-      vy(i) = vy(i)*exp(-0.5d0*timestep*friction)
-      vz(i) = vz(i)*exp(-0.5d0*timestep*friction)
-    end do 
-
-    call ekinetic_func
-    call friction_func
-
-    do i = 1, natom
-      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
-      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
-      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
-      rx(i) = rx(i)+vx(i)*timestep
-      ry(i) = ry(i)+vy(i)*timestep
-      rz(i) = rz(i)+vz(i)*timestep
-    end do 
-
-    call ccp
-    call forces
-
-    do i = 1, natom
-      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
-      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
-      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
-    end do 
-
-    call ekinetic_func
-    call friction_func
-
-    do i = 1, natom
-      vx(i) = vx(i)*exp(-0.5d0*timestep*friction)
-      vy(i) = vy(i)*exp(-0.5d0*timestep*friction)
-      vz(i) = vz(i)*exp(-0.5d0*timestep*friction)
-    end do 
-
-    call ekinetic_func
-    call friction_func
-    call temperature_func
-    call pressure_func
-
-  end subroutine nvt_hoover
+!  subroutine nvt_hoover
+!
+!    implicit none
+!    integer :: i 
+!    
+!    call ekinetic_func
+!    call friction_func
+!
+!    do i = 1, natom 
+!      vx(i) = vx(i)*exp(-0.5d0*timestep*friction)
+!      vy(i) = vy(i)*exp(-0.5d0*timestep*friction)
+!      vz(i) = vz(i)*exp(-0.5d0*timestep*friction)
+!    end do 
+!
+!    call ekinetic_func
+!    call friction_func
+!
+!    do i = 1, natom
+!      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+!      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+!      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+!      rx(i) = rx(i)+vx(i)*timestep
+!      ry(i) = ry(i)+vy(i)*timestep
+!      rz(i) = rz(i)+vz(i)*timestep
+!    end do 
+!
+!    call ccp
+!    call forces
+!
+!    do i = 1, natom
+!      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+!      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+!      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+!    end do 
+!
+!    call ekinetic_func
+!    call friction_func
+!
+!    do i = 1, natom
+!      vx(i) = vx(i)*exp(-0.5d0*timestep*friction)
+!      vy(i) = vy(i)*exp(-0.5d0*timestep*friction)
+!      vz(i) = vz(i)*exp(-0.5d0*timestep*friction)
+!    end do 
+!
+!    call ekinetic_func
+!    call friction_func
+!    call temperature_func
+!    call pressure_func
+!
+!  end subroutine nvt_hoover
 
   subroutine npt_berendsen
 
@@ -516,12 +514,12 @@ contains
     call eta_func(eta)
 
     do i = 1, natom 
-      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
-      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
-      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
-      rx(i) = rx(i)*eta+vx(i)*timestep
-      ry(i) = ry(i)*eta+vy(i)*timestep
-      rz(i) = rz(i)*eta+vz(i)*timestep
+      atom(i, 7) = atom(i, 7)+atom(i, 10)*0.5d0*timestep/atom(i, 2)
+      atom(i, 8) = atom(i, 8)+atom(i, 11)*0.5d0*timestep/atom(i, 2)
+      atom(i, 9) = atom(i, 9)+atom(i, 12)*0.5d0*timestep/atom(i, 2)
+      atom(i, 4) = atom(i, 4)*eta+atom(i, 7)*timestep
+      atom(i, 5) = atom(i, 5)*eta+atom(i, 8)*timestep
+      atom(i, 6) = atom(i, 6)*eta+atom(i, 9)*timestep
     end do 
 
     do i = 1,3
@@ -533,9 +531,9 @@ contains
     call forces
 
     do i = 1, natom 
-      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
-      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
-      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+      atom(i, 7) = atom(i, 7)+atom(i, 10)*0.5d0*timestep/atom(i, 2)
+      atom(i, 8) = atom(i, 8)+atom(i, 11)*0.5d0*timestep/atom(i, 2)
+      atom(i, 9) = atom(i, 9)+atom(i, 12)*0.5d0*timestep/atom(i, 2)
     end do 
 
     call ekinetic_func
@@ -544,9 +542,9 @@ contains
     qui = sqrt(1.0d0+timestep*(sigma/ekinetic-1.0d0)/tstat)
 
     do i = 1, natom 
-      vx(i) = vx(i)*qui
-      vy(i) = vy(i)*qui
-      vz(i) = vz(i)*qui
+      atom(i, 7) = atom(i, 7)*qui
+      atom(i, 8) = atom(i, 8)*qui
+      atom(i, 9) = atom(i, 9)*qui
     end do 
 
     call ekinetic_func
@@ -555,40 +553,40 @@ contains
 
   end subroutine npt_berendsen
 
-  subroutine npt_hoover
-
-    implicit none
-
-    integer :: i
-
-    call setTempFriction
-
-    do i = 1, natom 
-      vx(i) = vx(i)-0.5d0*timestep*temp_friction*vx(i)
-      vy(i) = vy(i)-0.5d0*timestep*temp_friction*vy(i)
-      vz(i) = vz(i)-0.5d0*timestep*temp_friction*vz(i)
-    end do 
-
-    call press_friction_func
-    
-    do i = 1, natom 
-      vx(i) = vx(i)-0.5d0*timestep*temp_friction*vx(i)
-      vy(i) = vy(i)-0.5d0*timestep*temp_friction*vy(i)
-      vz(i) = vz(i)-0.5d0*timestep*temp_friction*vz(i)
-    end do 
-
-    do i = 1, natom 
-      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
-      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
-      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
-    end do 
-
-    do i = 1, natom 
-      rx(i) = rx(i)+vx(i)*timestep
-      ry(i) = ry(i)+vy(i)*timestep
-      rz(i) = rz(i)+vz(i)*timestep
-    end do 
-
-  end subroutine npt_hoover
+!  subroutine npt_hoover
+!
+!    implicit none
+!
+!    integer :: i
+!
+!    call setTempFriction
+!
+!    do i = 1, natom 
+!      vx(i) = vx(i)-0.5d0*timestep*temp_friction*vx(i)
+!      vy(i) = vy(i)-0.5d0*timestep*temp_friction*vy(i)
+!      vz(i) = vz(i)-0.5d0*timestep*temp_friction*vz(i)
+!    end do 
+!
+!    call press_friction_func
+!    
+!    do i = 1, natom 
+!      vx(i) = vx(i)-0.5d0*timestep*temp_friction*vx(i)
+!      vy(i) = vy(i)-0.5d0*timestep*temp_friction*vy(i)
+!      vz(i) = vz(i)-0.5d0*timestep*temp_friction*vz(i)
+!    end do 
+!
+!    do i = 1, natom 
+!      vx(i) = vx(i)+fx(i)*0.5d0*timestep/mass(i)
+!      vy(i) = vy(i)+fy(i)*0.5d0*timestep/mass(i)
+!      vz(i) = vz(i)+fz(i)*0.5d0*timestep/mass(i)
+!    end do 
+!
+!    do i = 1, natom 
+!      rx(i) = rx(i)+vx(i)*timestep
+!      ry(i) = ry(i)+vy(i)*timestep
+!      rz(i) = rz(i)+vz(i)*timestep
+!    end do 
+!
+!  end subroutine npt_hoover
 
 end module Libs

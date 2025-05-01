@@ -343,6 +343,19 @@ class System(Constants):
         self.fz = np.multiply(self.fz, self.ECONV/self.ACONV)
         self.ea = np.multiply(self.ea, self.ECONV)
 
+        for atom in self.atom:
+            atom[1] = np.multiply(atom[1], self.MCONV)
+            atom[3] = np.multiply(atom[3], self.ACONV)
+            atom[4] = np.multiply(atom[4], self.ACONV)
+            atom[5] = np.multiply(atom[5], self.ACONV)
+            atom[6] = np.multiply(atom[6], self.ACONV/self.TIMECONV)
+            atom[7] = np.multiply(atom[7], self.ACONV/self.TIMECONV)
+            atom[8] = np.multiply(atom[8], self.ACONV/self.TIMECONV)
+            atom[9] = np.multiply(atom[9], self.ECONV/self.TIMECONV)
+            atom[10] = np.multiply(atom[10], self.ECONV/self.TIMECONV)
+            atom[11] = np.multiply(atom[11], self.ECONV/self.TIMECONV)
+            atom[12] = np.multiply(atom[12], self.ECONV)
+
     def convertUnitsInv(self):
 
         self.epotential = np.divide(self.epotential, self.ECONV)
@@ -369,6 +382,19 @@ class System(Constants):
         self.fy = np.divide(self.fy, self.ECONV/self.ACONV)
         self.fz = np.divide(self.fz, self.ECONV/self.ACONV)
         self.ea = np.divide(self.ea, self.ECONV)
+
+        for atom in self.atom:
+            atom[1] = np.divide(atom[1], self.MCONV)
+            atom[3] = np.divide(atom[3], self.ACONV)
+            atom[4] = np.divide(atom[4], self.ACONV)
+            atom[5] = np.divide(atom[5], self.ACONV)
+            atom[6] = np.divide(atom[6], self.ACONV/self.TIMECONV)
+            atom[7] = np.divide(atom[7], self.ACONV/self.TIMECONV)
+            atom[8] = np.divide(atom[8], self.ACONV/self.TIMECONV)
+            atom[9] = np.divide(atom[9], self.ECONV/self.TIMECONV)
+            atom[10] = np.divide(atom[10], self.ECONV/self.TIMECONV)
+            atom[11] = np.divide(atom[11], self.ECONV/self.TIMECONV)
+            atom[12] = np.divide(atom[12], self.ECONV)
 
     def save(self, filename = 'system.json'):
 
