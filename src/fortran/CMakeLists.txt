@@ -36,7 +36,7 @@ execute_process(
 message(STATUS "Definindo diretório de headers do numpy: ${NUMPY_INCLUDE_DIR}")
 
 # gerando arquivos module.c f2pywrappers2.f90 
-set(fortran_src_file "md_fortran.f90")
+set(fortran_src_file "fortran_module.f90")
 set(fortran_src_file "${CMAKE_CURRENT_SOURCE_DIR}/${fortran_src_file}")
 
 add_custom_command(
