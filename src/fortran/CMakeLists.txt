@@ -6,6 +6,9 @@ if(SKBUILD)
   message(STATUS "The project is built using scikit-build")
 endif()
 
+# configurando ambiente de instalação 
+include(cmake/config.cmake)
+
 # imprimindo informações importantes
 message(STATUS "Diretório do código fonte: ${CMAKE_CURRENT_SOURCE_DIR}")
 message(STATUS "Diretório de arquivos binários: ${CMAKE_CURRENT_BINARY_DIR}")
@@ -36,13 +39,12 @@ execute_process(
 message(STATUS "Definindo diretório de headers do numpy: ${NUMPY_INCLUDE_DIR}")
 
 # gerando arquivos module.c f2pywrappers2.f90 
-set(fortran_src_file "fortran_module.f90")
-set(fortran_src_file "${CMAKE_CURRENT_SOURCE_DIR}/${fortran_src_file}")
+#set(fortran_src_file "${CMAKE_CURRENT_SOURCE_DIR}/${FORTRAN_FILES}")
 
 add_custom_command(
   OUTPUT ${PROJECT_NAME}module.c ${PROJECT_NAME}-f2pywrappers2.f90
-  DEPENDS ${fortran_src_file}
-  COMMAND ${Python_EXECUTABLE} -m numpy.f2py "${fortran_src_file}" -m ${PROJECT_NAME} --lower
+  DEPENDS ${FORTRAN_FILES}
+  COMMAND ${Python_EXECUTABLE} -m numpy.f2py "${FORTRAN_FILES}" -m ${PROJECT_NAME} --lower
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
 )
 
@@ -54,7 +56,7 @@ add_library(
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}module.c"
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-f2pywrappers2.f90"
   "${F2PY_INCLUDE_DIR}/fortranobject.c"
-  "${fortran_src_file}"
+  "${FORTRAN_FILES}"
 )
 
 message(STATUS "Definindo biblioteca ${PROJECT_NAME}")
