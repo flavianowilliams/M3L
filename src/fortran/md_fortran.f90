@@ -3,7 +3,7 @@ module Libs
   integer, allocatable, dimension(:) :: nlist
   integer, allocatable, dimension(:,:) :: ilist, molecules, sites 
   real(8) :: timestep, tstat, pstat, bfactor, temp_bath, press_bath, friction
-  real(8) :: ekinetic, energy, temperature, pressure, virial, rvdw, temp_friction, press_friction, volume 
+  real(8) :: ekinetic, energy, temperature, pressure, virial, rvdw, rcoul, temp_friction, press_friction, volume 
   real(8), dimension(3) :: cell
   real(8), allocatable, dimension(:, :) :: params, atom
 contains
@@ -84,7 +84,7 @@ contains
 
   end subroutine mic
 !
-!- Intermolecular interaction
+!- Van der Waals interaction
 !
   subroutine vdw
 

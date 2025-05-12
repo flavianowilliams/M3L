@@ -47,54 +47,6 @@ class Ensemble(Constants):
     def nvt_verlet(self):
 
         print("não valendo...")
-        #        libs.nfree = self.nfree
-        #        libs.temp_bath = self.temp_bath
-        #        libs.natom = len(self.mat)
-        #        libs.timestep = self.dtimestep
-        #        libs.tstat = self.tstat
-        #        libs.cell = self.cell
-        #        libs.sites = self.sites
-        #        libs.nsites = self.nsites
-        #        libs.nmolecules = len(self.molecules)
-        #        libs.molecules = self.molecules
-        #
-        #        libs.params = self.force_field 
-        #        libs.nvdw = len(self.force_field)-1
-        #        libs.rvdw = self.force_field[0, 0]
-        #
-        #        libs.mass = self.mat
-        #        libs.rx = self.rx
-        #        libs.ry = self.ry
-        #        libs.rz = self.rz
-        #        libs.vx = self.vx
-        #        libs.vy = self.vy
-        #        libs.vz = self.vz
-        #        libs.fx = self.fx
-        #        libs.fy = self.fy
-        #        libs.fz = self.fz
-        #        libs.ea = self.ea
-        #        libs.atp = self.atp
-        #
-        #        libs.prepare()
-        #        libs.nvt_berendsen()
-        #
-        #        self.cell = libs.cell
-        #        
-        #        self.rx = libs.rx
-        #        self.ry = libs.ry
-        #        self.rz = libs.rz
-        #        self.vx = libs.vx
-        #        self.vy = libs.vy
-        #        self.vz = libs.vz
-        #        self.fx = libs.fx
-        #        self.fy = libs.fy
-        #        self.fz = libs.fz
-        #        self.ea = libs.ea
-        #
-        #        self.temperature = libs.temperature
-        #        self.pressure = libs.pressure
-        #        self.ekinetic = libs.ekinetic
-        #        self.epotential = libs.energy
 
     def npt_verlet(self):
 
@@ -108,6 +60,7 @@ class Ensemble(Constants):
         libs.params = self.force_field 
         libs.nvdw = len(self.force_field)-1
         libs.rvdw = self.force_field[0, 0]
+        libs.rcoul = self.force_field[0, 1]
 
         libs.atom = self.sys.atom
         libs.natom = self.sys.natom
@@ -118,19 +71,6 @@ class Ensemble(Constants):
         libs.nmolecules = len(self.sys.molecule)
         libs.molecules = self.sys.molecule
 
-#        libs.mass = self.sys.mat
-#        libs.rx = self.sys.rx
-#        libs.ry = self.sys.ry
-#        libs.rz = self.sys.rz
-#        libs.vx = self.sys.vx
-#        libs.vy = self.sys.vy
-#        libs.vz = self.sys.vz
-#        libs.fx = self.sys.fx
-#        libs.fy = self.sys.fy
-#        libs.fz = self.sys.fz
-#        libs.ea = self.sys.ea
-#        libs.atp = self.sys.atp
-
         libs.prepare()
         libs.npt_berendsen()
 
@@ -138,23 +78,6 @@ class Ensemble(Constants):
 
         self.sys = system
         self.nfree = 3*(system.natom-1)
-
-# retirar esta parte!
-##################################
-        self.mat = self.sys.mat
-        self.atp = self.sys.atp 
-        self.chg = self.sys.chg
-        self.rx = self.sys.rx
-        self.ry = self.sys.ry
-        self.rz = self.sys.rz
-        self.vx = self.sys.vx
-        self.vy = self.sys.vy
-        self.vz = self.sys.vz
-        self.fx = self.sys.fx
-        self.fy = self.sys.fy
-        self.fz = self.sys.fz
-        self.ea = self.sys.ea
-#################################3
 
     def hook_output(self):
 
@@ -171,23 +94,6 @@ class Ensemble(Constants):
         self.sys.nsites = libs.nsites
         self.sys.molecule = libs.molecules
         
-# retirar esta parte!
-##################################
-        self.sys.mat = self.mat
-        self.sys.atp = self.atp 
-        self.sys.chg = self.chg
-        self.sys.rx = self.rx
-        self.sys.ry = self.ry
-        self.sys.rz = self.rz
-        self.sys.vx = self.vx
-        self.sys.vy = self.vy
-        self.sys.vz = self.vz
-        self.sys.fx = self.fx
-        self.sys.fy = self.fy
-        self.sys.fz = self.fz
-        self.sys.ea = self.ea
-##################################
-
         self.sys.temperature = libs.temperature
         self.sys.temp_friction = libs.temp_friction
         self.sys.temp_bath = libs.temp_bath

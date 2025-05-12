@@ -41,19 +41,6 @@ class System(Constants):
     nsites = np.array([], dtype = np.int32)
     atom = np.array([], dtype = np.float64)
     volume = np.array([], dtype = np.float64)
-    atp = np.array([], dtype = np.float64)
-    mat = np.array([], dtype = np.float64)
-    chg = np.array([], dtype = np.float64)
-    rx = np.array([], dtype = np.float64)
-    ry = np.array([], dtype = np.float64)
-    rz = np.array([], dtype = np.float64)
-    vx = np.array([], dtype = np.float64)
-    vy = np.array([], dtype = np.float64)
-    vz = np.array([], dtype = np.float64)
-    fx = np.array([], dtype = np.float64)
-    fy = np.array([], dtype = np.float64)
-    fz = np.array([], dtype = np.float64)
-    ea = np.array([], dtype = np.float64)
 
     def loadSystem(self, filename):
 
@@ -71,45 +58,12 @@ class System(Constants):
 
             self.atom = np.array(json_file['atom'], dtype=np.float64)
 
-            self.atp = np.array([])
-            self.mat = np.array([])
-            self.chg = np.array([])
-            self.rx = np.array([])
-            self.ry = np.array([])
-            self.rz = np.array([])
-            self.vx = np.array([])
-            self.vy = np.array([])
-            self.vz = np.array([])
-            self.fx = np.array([])
-            self.fy = np.array([])
-            self.fz = np.array([])
-            self.ea = np.array([])
-
-            for atom in self.atom:
-
-                self.atp = np.append(self.atp, atom[0])
-                self.mat = np.append(self.mat, atom[1])
-                self.chg = np.append(self.chg, atom[2])
-                self.rx = np.append(self.rx, atom[3])
-                self.ry = np.append(self.ry, atom[4])
-                self.rz = np.append(self.rz, atom[5])
-                self.vx = np.append(self.vx, atom[6])
-                self.vy = np.append(self.vy, atom[7])
-                self.vz = np.append(self.vz, atom[8])
-                self.fx = np.append(self.fx, atom[9])
-                self.fy = np.append(self.fy, atom[10])
-                self.fz = np.append(self.fz, atom[11])
-                self.ea = np.append(self.ea, atom[12])
 
         self.setSites()
 
         self.setNatom(len(self.atom))
 
         self.setVolume()
-
-# convertendo datatypes
-
-        self.atp = np.array(self.atp, dtype = np.int32)
 
     def setSystem(self, description, temperature, pressure, cell, molecules, atoms):
 
@@ -176,23 +130,21 @@ class System(Constants):
 
     def setSites(self):
 
-#        self.sites = np.array([], dtype = np.int32)
-
         list_ = []
 
-        for item in self.atp:
+        for item in self.atom:
 
-            if item not in list_:
+            if item[0] not in list_:
 
-                list_.append(item)
+                list_.append(item[0])
 
         for site in list_:
 
             nx = 0 
 
-            for item in self.atp:
+            for item in self.atom:
 
-                if site == item:
+                if site == item[0]:
 
                     nx += 1 
 
@@ -218,18 +170,6 @@ class System(Constants):
         self.cell[1] = self.cell[1]*self.ACONV
         self.cell[2] = self.cell[2]*self.ACONV
         self.volume = np.multiply(self.volume, self.ACONV**3)
-
-        self.mat = np.multiply(self.mat, self.MCONV)
-        self.rx = np.multiply(self.rx, self.ACONV)
-        self.ry = np.multiply(self.ry, self.ACONV)
-        self.rz = np.multiply(self.rz, self.ACONV)
-        self.vx = np.multiply(self.vx, self.ACONV/self.TIMECONV)
-        self.vy = np.multiply(self.vy, self.ACONV/self.TIMECONV)
-        self.vz = np.multiply(self.vz, self.ACONV/self.TIMECONV)
-        self.fx = np.multiply(self.fx, self.ECONV/self.ACONV)
-        self.fy = np.multiply(self.fy, self.ECONV/self.ACONV)
-        self.fz = np.multiply(self.fz, self.ECONV/self.ACONV)
-        self.ea = np.multiply(self.ea, self.ECONV)
 
         for atom in self.atom:
             atom[1] = np.multiply(atom[1], self.MCONV)
@@ -259,18 +199,6 @@ class System(Constants):
         self.cell[2] = np.divide(self.cell[2], self.ACONV)
         self.volume = np.divide(self.volume, self.ACONV**3)
 
-        self.mat = np.divide(self.mat, self.MCONV)
-        self.rx = np.divide(self.rx, self.ACONV)
-        self.ry = np.divide(self.ry, self.ACONV)
-        self.rz = np.divide(self.rz, self.ACONV)
-        self.vx = np.divide(self.vx, self.ACONV/self.TIMECONV)
-        self.vy = np.divide(self.vy, self.ACONV/self.TIMECONV)
-        self.vz = np.divide(self.vz, self.ACONV/self.TIMECONV)
-        self.fx = np.divide(self.fx, self.ECONV/self.ACONV)
-        self.fy = np.divide(self.fy, self.ECONV/self.ACONV)
-        self.fz = np.divide(self.fz, self.ECONV/self.ACONV)
-        self.ea = np.divide(self.ea, self.ECONV)
-
         for atom in self.atom:
             atom[1] = np.divide(atom[1], self.MCONV)
             atom[3] = np.divide(atom[3], self.ACONV)
@@ -286,40 +214,6 @@ class System(Constants):
 
     def save(self, filename = 'system.json'):
 
-        atoms = np.array([[
-                self.atp[0],
-                self.mat[0],
-                self.chg[0],
-                self.rx[0],
-                self.ry[0],
-                self.rz[0],
-                self.vx[0],
-                self.vy[0],
-                self.vz[0],
-                self.fx[0],
-                self.fy[0],
-                self.fz[0],
-                self.ea[0]
-            ]], dtype = np.float64)
-
-        for i in range(1, len(self.mat)):
-
-            atoms = np.append(atoms, [[
-                self.atp[i],
-                self.mat[i],
-                self.chg[i],
-                self.rx[i],
-                self.ry[i],
-                self.rz[i],
-                self.vx[i],
-                self.vy[i],
-                self.vz[i],
-                self.fx[i],
-                self.fy[i],
-                self.fz[i],
-                self.ea[i]
-                ]], axis = 0)
-
         dictfile = {
                 'description': self.description,
                 'cell': self.cell.tolist(),
@@ -332,7 +226,7 @@ class System(Constants):
                     self.ekinetic.item()
                     ],
                 'molecule': self.molecule.tolist(),
-                'atom': atoms.tolist()
+                'atom': self.atom.tolist()
                 }
 
         outfile = json.dumps(dictfile, indent = 1)

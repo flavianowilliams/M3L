@@ -22,6 +22,7 @@ class ForceField(Constants):
     def intermolecular(self, **kwargs):
 
         self.prms[0, 0] = kwargs['rvdw']*self.ACONV
+        self.prms[0, 1] = kwargs['rcoul']*self.ACONV
 
     def molecule(self, *args):
 
