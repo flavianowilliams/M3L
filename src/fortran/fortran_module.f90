@@ -1,4 +1,4 @@
-module Libs 
+module fortran_module 
   integer :: natom, nmolecules, nsites, nvdw, nfree
   integer, allocatable, dimension(:) :: nlist
   integer, allocatable, dimension(:,:) :: ilist, molecules, sites 
@@ -547,4 +547,4 @@ contains
 !
 !  end subroutine npt_hoover
 
-end module Libs
+end module fortran_module

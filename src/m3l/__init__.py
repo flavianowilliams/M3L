@@ -1,1 +1,1 @@
-from python_fortran import libs
+from fortran import fortran_module as libs
