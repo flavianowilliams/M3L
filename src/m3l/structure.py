@@ -54,13 +54,6 @@ class System(Constants):
             json_file = json.load(file)
             self.description = json_file['description']
             self.cell = np.array(json_file['cell'], dtype=np.float64)
-#            self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float64)
-#            self.temp_friction = np.array(json_file['thermodynamic'][1], dtype=np.float64)
-#            self.pressure = np.array(json_file['thermodynamic'][2], dtype=np.float64)
-#            self.virial = np.array(json_file['thermodynamic'][3], dtype=np.float64)
-#            self.press_friction = np.array(json_file['thermodynamic'][4], dtype=np.float64)
-#            self.epotential = np.array(json_file['thermodynamic'][5], dtype=np.float64)
-#            self.ekinetic = np.array(json_file['thermodynamic'][6], dtype=np.float64)
             self.molecule = np.array(json_file['molecule'], dtype=np.int32)
 
             self.atom = np.array(json_file['atom'], dtype=np.float64)
@@ -87,10 +80,8 @@ class System(Constants):
 
         self.description = description
         self.temperature = np.array(temperature, dtype = np.float64)
-        self.temp_friction = np.array(0.0, dtype = np.float64)
         self.pressure = np.array(pressure, dtype = np.float64)
         self.virial = np.array(0.0, dtype = np.float64)
-        self.press_friction = np.array(0.0, dtype = np.float64)
         self.cell = np.array(cell, dtype = np.float64)
         self.epotential = np.array(0.0, dtype = np.float64)
         self.molecule = np.array(molecule, np.int32)
