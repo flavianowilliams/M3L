@@ -1,7 +1,7 @@
 import numpy as np
-from m3l.structure import Atom, System
+from m3l.structure import System
 from m3l.utils import Constants
-from m3l import libs
+from m3l import libens, libtherm, libstruct, libforce
 
 class Ensemble(Constants):
 
@@ -10,7 +10,6 @@ class Ensemble(Constants):
         self.timestep = np.array(timestep*self.TIMECONV, dtype = np.float64)
         self.dtimestep = np.array(timestep*self.TIMECONV, dtype = np.float64)
         self.force_field = np.array(force_field, dtype = np.float64)
-        self.temp_bath = np.array(temp_bath*self.TEMPCONV, dtype = np.float64)
         self.friction = 0.e0
 
         if tstat:
@@ -46,33 +45,212 @@ class Ensemble(Constants):
 
     def nvt_verlet(self):
 
-        print("não valendo...")
+        libens.temp_friction = self.sys.temp_friction
+        libens.press_friction = self.sys.press_friction
+
+#definindo coordenadas canonicas
+
+        libstruct.natom = self.sys.natom
+        libstruct.nfree = self.nfree
+        libstruct.cell = self.sys.cell
+        libstruct.atom = self.sys.atom
+
+#-atualizando coordenadas canônicas
+
+        for atom in libstruct.atom:
+            atom[6] = atom[6]+0.5e0*self.timestep*atom[9]/atom[1]
+            atom[7] = atom[7]+0.5e0*self.timestep*atom[10]/atom[1]
+            atom[8] = atom[8]+0.5e0*self.timestep*atom[11]/atom[1]
+            atom[3] = atom[3]+atom[6]*self.timestep
+            atom[4] = atom[4]+atom[7]*self.timestep
+            atom[5] = atom[5]+atom[8]*self.timestep
+
+#-atualizando coordenadas atômicas
+        
+        libstruct.ccp()
+
+#-calculando campo de força
+
+        libforce.natom = libstruct.natom
+
+        libforce.atom = libstruct.atom
+        libforce.nmolecules = len(self.sys.molecule)
+        libforce.sites = self.sys.sites
+        libforce.nsites = self.sys.nsites
+        libforce.molecules = self.sys.molecule
+        libforce.nvdw = len(self.force_field)-1
+        libforce.rvdw = self.force_field[0, 0]
+        libforce.rcoul = self.force_field[0, 1]
+        libforce.cell = libstruct.cell
+        libforce.params = self.force_field 
+        libforce.setforces()
+
+        libstruct.atom = libforce.atom
+
+#-atualizando coordenadas canônicas
+
+        for atom in libstruct.atom:
+            atom[6] = atom[6]+0.5e0*self.timestep*atom[9]/atom[1]
+            atom[7] = atom[7]+0.5e0*self.timestep*atom[10]/atom[1]
+            atom[8] = atom[8]+0.5e0*self.timestep*atom[11]/atom[1]
+
+#-calculando energia cinética
+
+        libtherm.natom = libstruct.natom
+        libtherm.atom = libstruct.atom
+        libtherm.setekinetic()
+
+#-atualizando coordenadas canônicas
+
+        sigma = 0.5e0*self.nfree*self.temp_bath
+        qui = np.sqrt(1.0e0+self.timestep*(sigma/libtherm.ekinetic-1.0e0)/self.tstat)
+
+        for atom in libstruct.atom:
+            atom[6] = atom[6]*qui
+            atom[7] = atom[7]*qui
+            atom[8] = atom[8]*qui
+
+#-calculando energia cinética e temperatura
+
+        libtherm.atom = libstruct.atom
+        libtherm.nfree = libstruct.nfree
+        libtherm.setekinetic()
+        libtherm.settemperature()
+
+#-calculando pressão 
+
+        libtherm.virial = libforce.virial
+        libtherm.setpressure()
+
+#-definindo volume 
+
+        libtherm.volume = self.sys.volume
+
+    def npt_hoover(self):
+
+        libens.temp_friction = self.sys.temp_friction
+        libens.press_friction = self.sys.press_friction
+
+#definindo coordenadas canonicas
+
+        libstruct.natom = self.sys.natom
+        libstruct.nfree = self.nfree
+        libstruct.cell = self.sys.cell
+        libstruct.atom = self.sys.atom
 
     def npt_verlet(self):
 
-        libs.nfree = self.nfree
-        libs.timestep = self.dtimestep
-        libs.bfactor = self.bfactor
-        libs.tstat = self.tstat
-        libs.pstat = self.pstat
-        libs.press_bath = self.press_bath
-        libs.temp_bath = self.temp_bath
-        libs.params = self.force_field 
-        libs.nvdw = len(self.force_field)-1
-        libs.rvdw = self.force_field[0, 0]
-        libs.rcoul = self.force_field[0, 1]
+        libens.temp_friction = self.sys.temp_friction
+        libens.press_friction = self.sys.press_friction
 
-        libs.atom = self.sys.atom
-        libs.natom = self.sys.natom
-        libs.cell = self.sys.cell
-        libs.volume = self.sys.volume
-        libs.sites = self.sys.sites
-        libs.nsites = self.sys.nsites
-        libs.nmolecules = len(self.sys.molecule)
-        libs.molecules = self.sys.molecule
+#definindo coordenadas canonicas
 
-        libs.prepare()
-        libs.npt_berendsen()
+        libstruct.natom = self.sys.natom
+        libstruct.nfree = self.nfree
+        libstruct.cell = self.sys.cell
+        libstruct.atom = self.sys.atom
+
+#- calculando parametro eta
+
+        libens.bfactor = self.bfactor
+        libens.timestep = self.timestep
+        libens.press_bath = self.press_bath
+        libens.pressure = self.sys.pressure
+        libens.pstat = self.pstat
+
+        libens.seteta()
+        eta = libens.eta
+
+#-atualizando coordenadas canônicas
+
+#        libens.natom = self.sys.natom
+#        libens.atom = atm
+#        libens.npt_berendsen_a()
+#        libens.npt_berendsen_b()
+
+        for atom in libstruct.atom:
+            atom[6] = atom[6]+0.5e0*self.timestep*atom[9]/atom[1]
+            atom[7] = atom[7]+0.5e0*self.timestep*atom[10]/atom[1]
+            atom[8] = atom[8]+0.5e0*self.timestep*atom[11]/atom[1]
+            atom[3] = atom[3]*eta+atom[6]*self.timestep
+            atom[4] = atom[4]*eta+atom[7]*self.timestep
+            atom[5] = atom[5]*eta+atom[8]*self.timestep
+
+#-atualizando parâmetros de rede e volume da supercélula
+
+        libstruct.eta = eta
+        libstruct.setcell()
+
+        libtherm.cell = libstruct.cell
+        libtherm.volume = self.sys.volume
+        libtherm.eta = eta
+        libtherm.setvolumex()
+
+#-atualizando coordenadas atômicas
+        
+        libstruct.ccp()
+
+#-calculando campo de força
+
+        libforce.natom = libstruct.natom
+
+        libforce.atom = libstruct.atom
+        libforce.nmolecules = len(self.sys.molecule)
+        libforce.sites = self.sys.sites
+        libforce.nsites = self.sys.nsites
+        libforce.molecules = self.sys.molecule
+        libforce.nvdw = len(self.force_field)-1
+        libforce.rvdw = self.force_field[0, 0]
+        libforce.rcoul = self.force_field[0, 1]
+        libforce.cell = libstruct.cell
+        libforce.params = self.force_field 
+        libforce.setforces()
+
+        libstruct.atom = libforce.atom
+
+#-atualizando coordenadas canônicas
+
+#        libens.atom = libstruct.atom
+#        libens.npt_berendsen_a()
+
+        for atom in libstruct.atom:
+            atom[6] = atom[6]+0.5e0*self.timestep*atom[9]/atom[1]
+            atom[7] = atom[7]+0.5e0*self.timestep*atom[10]/atom[1]
+            atom[8] = atom[8]+0.5e0*self.timestep*atom[11]/atom[1]
+
+#-calculando energia cinética
+
+        libtherm.natom = libstruct.natom
+        libtherm.atom = libstruct.atom
+        libtherm.setekinetic()
+
+#-atualizando coordenadas canônicas
+
+#        libens.nfree = libstruct.nfree
+#        libens.ekinetic = libtherm.ekinetic
+#        libens.tstat = self.tstat
+#        libens.temp_bath = self.temp_bath
+#        libens.npt_berendsen_c()
+
+        sigma = 0.5e0*self.nfree*self.temp_bath
+        qui = np.sqrt(1.0e0+self.timestep*(sigma/libtherm.ekinetic-1.0e0)/self.tstat)
+
+        for atom in libstruct.atom:
+            atom[6] = atom[6]*qui
+            atom[7] = atom[7]*qui
+            atom[8] = atom[8]*qui
+
+#-calculando energia cinética e temperatura
+
+        libtherm.atom = libstruct.atom
+        libtherm.nfree = libstruct.nfree
+        libtherm.setekinetic()
+        libtherm.settemperature()
+
+#-calculando pressão 
+
+        libtherm.virial = libforce.virial
+        libtherm.setpressure()
 
     def hook(self, system):
 
@@ -86,23 +264,22 @@ class Ensemble(Constants):
         self.sys = System()
 
         self.sys.description = description
-        self.sys.cell = libs.cell
-        self.sys.volume = libs.volume
-        self.sys.atom = libs.atom
-        self.sys.natom = libs.natom
-        self.sys.sites = libs.sites
-        self.sys.nsites = libs.nsites
-        self.sys.molecule = libs.molecules
-        
-        self.sys.temperature = libs.temperature
-        self.sys.temp_friction = libs.temp_friction
-        self.sys.temp_bath = libs.temp_bath
-        self.sys.pressure = libs.pressure
-        self.sys.press_bath = libs.press_bath
-        self.sys.press_friction = libs.press_friction
-        self.sys.ekinetic = libs.ekinetic
-        self.sys.epotential = libs.energy
-        self.sys.volume = libs.volume
+        self.sys.cell = libstruct.cell
+        self.sys.volume = libtherm.volume
+        self.sys.atom = libstruct.atom
+        self.sys.natom = libstruct.natom
+        self.sys.sites = libforce.sites
+        self.sys.nsites = libforce.nsites
+        self.sys.molecule = libforce.molecules
+#        
+        self.sys.temperature = libtherm.temperature
+        self.sys.temp_friction = libens.temp_friction
+        self.sys.pressure = libtherm.pressure
+        self.sys.press_friction = libens.press_friction
+        self.sys.ekinetic = libtherm.ekinetic
+        self.sys.epotential = libforce.energy
+        self.sys.volume = libtherm.volume
+        self.sys.virial = libforce.virial
 
         return self.sys
 

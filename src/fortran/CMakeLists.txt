@@ -33,18 +33,19 @@ execute_process(
 
 #flags de compilação
 set(CMAKE_Fortran_COMPILER "gfortran")
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fcheck=all -Wall" CACHE STRING "" FORCE)
+
+#set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fcheck=all -Wall -fPIC" CACHE STRING "" FORCE)
+
+#definindo diretório dos módulos fortran
+#set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" CACHE STRING "" FORCE)
 
 # configurando ambiente CMAKE 
 include(cmake/config.cmake)
 
-set(filename "fortran")
+set(filename "structure;force_field;thermodynamics;ensemble")
 #
 foreach(VALUE IN LISTS filename)
   function_module(${VALUE})
 endforeach()
-
-#set(filename "modulo1")
-#
-#function_module(filename)
 

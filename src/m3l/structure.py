@@ -1,5 +1,8 @@
 import numpy as np
 import json
+
+from numpy._core.numeric import dtype
+from numpy._core.numerictypes import int32
 from m3l.utils import Constants
 
 class Atom(Constants):
@@ -31,9 +34,9 @@ class System(Constants):
     description = np.array([])
     cell = np.array([], dtype = np.float64)
     temperature = np.array([], dtype = np.float64)
-    temp_friction = np.array([], dtype = np.float64)
+    temp_friction = np.array(0.0e0, dtype = np.float64)
+    press_friction = np.array(0.0e0, dtype = np.float64)
     pressure = np.array([], dtype = np.float64)
-    press_friction = np.array([], dtype = np.float64)
     epotential = np.array([], dtype = np.float64)
     ekinetic = np.array([], dtype = np.float64)
     molecule = np.array([], dtype = np.int32)
@@ -41,6 +44,9 @@ class System(Constants):
     nsites = np.array([], dtype = np.int32)
     atom = np.array([], dtype = np.float64)
     volume = np.array([], dtype = np.float64)
+    virial = np.array([], dtype=np.float64)
+    natom = np.array([], dtype=np.int32)
+    nfree = np.array([], dtype=np.int32)
 
     def loadSystem(self, filename):
 
@@ -48,16 +54,16 @@ class System(Constants):
             json_file = json.load(file)
             self.description = json_file['description']
             self.cell = np.array(json_file['cell'], dtype=np.float64)
-            self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float64)
-            self.temp_friction = np.array(json_file['thermodynamic'][1], dtype=np.float64)
-            self.pressure = np.array(json_file['thermodynamic'][2], dtype=np.float64)
-            self.press_friction = np.array(json_file['thermodynamic'][3], dtype=np.float64)
-            self.epotential = np.array(json_file['thermodynamic'][4], dtype=np.float64)
-            self.ekinetic = np.array(json_file['thermodynamic'][5], dtype=np.float64)
+#            self.temperature = np.array(json_file['thermodynamic'][0], dtype=np.float64)
+#            self.temp_friction = np.array(json_file['thermodynamic'][1], dtype=np.float64)
+#            self.pressure = np.array(json_file['thermodynamic'][2], dtype=np.float64)
+#            self.virial = np.array(json_file['thermodynamic'][3], dtype=np.float64)
+#            self.press_friction = np.array(json_file['thermodynamic'][4], dtype=np.float64)
+#            self.epotential = np.array(json_file['thermodynamic'][5], dtype=np.float64)
+#            self.ekinetic = np.array(json_file['thermodynamic'][6], dtype=np.float64)
             self.molecule = np.array(json_file['molecule'], dtype=np.int32)
 
             self.atom = np.array(json_file['atom'], dtype=np.float64)
-
 
         self.setSites()
 
@@ -65,12 +71,25 @@ class System(Constants):
 
         self.setVolume()
 
-    def setSystem(self, description, temperature, pressure, cell, molecules, atoms):
+        self.setNFree()
+
+        self.setEkinetic()
+
+        self.setTemperature()
+
+        self.setVirial()
+
+        self.setPressure()
+
+        self.setPotential()
+
+    def setSystem(self, description, temperature, pressure, cell, molecule, atoms):
 
         self.description = description
         self.temperature = np.array(temperature, dtype = np.float64)
         self.temp_friction = np.array(0.0, dtype = np.float64)
         self.pressure = np.array(pressure, dtype = np.float64)
+        self.virial = np.array(0.0, dtype = np.float64)
         self.press_friction = np.array(0.0, dtype = np.float64)
         self.cell = np.array(cell, dtype = np.float64)
         self.epotential = np.array(0.0, dtype = np.float64)
@@ -78,55 +97,69 @@ class System(Constants):
 
         self.atom = np.array([[]], dtype = np.float64)
 
-        atp = []
-        mat = []
-        chg = []
-        rx = []
-        ry = []
-        rz = []
-        for atom in atoms:
-           atp.append(atom[0])
-           chg.append(atom[1])
-           mat.append(atom[2])
-           rx.append(atom[3])
-           ry.append(atom[4])
-           rz.append(atom[5])
-
-        natoms = len(atoms)
-
-        self.setNatom(natoms)
-
-        self.setEkinetic(natoms)
-
-        self.atp = np.array(atp, dtype = np.int32)
-        self.mat = np.array(mat, dtype = np.float64)
-        self.chg = np.array(chg, dtype = np.float64)
-        self.rx = np.array(rx, dtype = np.float64)
-        self.ry = np.array(ry, dtype = np.float64)
-        self.rz = np.array(rz, dtype = np.float64)
-        self.vx = np.repeat(self.ekinetic, natoms)
-        self.vy = np.repeat(self.ekinetic, natoms)
-        self.vz = np.repeat(self.ekinetic, natoms)
-        self.fx = np.zeros(natoms)
-        self.fy = np.zeros(natoms)
-        self.fz = np.zeros(natoms)
-        self.ea = np.zeros(natoms)
-
     def setNatom(self, natoms):
 
-        self.natom = natoms
+        self.natom = np.array(natoms, dtype=np.int32)
 
         return self.natom
+
+    def setNFree(self):
+
+        self.nfree = np.array(3*(self.natom-1), dtype=np.int32)
+
+        return self.nfree
 
     def setVolume(self):
 
         self.volume = np.prod(self.cell)
 
-    def setEkinetic(self, natoms):
+        return self.volume
 
-        nfree = 3*(natoms-1)
-        
-        self.ekinetic = np.array(1.5*nfree*self.KB*(self.temperature*self.TEMPCONV), dtype = np.float64)
+    def setEkinetic(self):
+
+        sum_ = 0.0e0
+        for atom in self.atom:
+            sum_ += atom[1]*(atom[6]**2+atom[7]**2+atom[8]**2)
+
+        self.ekinetic = np.array(0.5e0*sum_, dtype=np.float64)
+
+        return self.ekinetic
+
+    def setTemperature(self):
+
+        self.temperature = np.array(2.0*self.ekinetic/self.nfree, dtype=np.float64)
+
+        return self.temperature
+
+    def setVirial(self):
+
+        sum_ = 0.0e0
+        for i in range(len(self.atom)):
+            for j in range(i+1, len(self.atom)):
+                drx = self.atom[j][3]-self.atom[i][3]
+                dry = self.atom[j][4]-self.atom[i][4]
+                drz = self.atom[j][5]-self.atom[i][5]
+                sum_ += self.atom[i][9]*drx+self.atom[i][10]*dry+self.atom[i][11]*drz
+
+        self.virial = np.array(sum_, dtype=np.float64)
+
+        return self.virial
+
+    def setPressure(self):
+
+        self.pressure = np.array((2.0*self.ekinetic+self.virial)/(3.0*self.volume), dtype = np.float64)
+
+        return self.pressure
+
+    def setPotential(self):
+
+        sum_ = 0.0e0
+        for atom in self.atom:
+            sum_ += atom[12]
+
+        self.epotential = np.array(sum_, dtype = np.float64)
+
+        return self.epotential
 
     def setSites(self):
 
@@ -160,9 +193,11 @@ class System(Constants):
 
     def convertUnits(self):
 
-        self.epotential = self.epotential*self.ECONV
-        self.ekinetic = self.ekinetic*self.ECONV
-        self.temperature = self.temperature*self.TEMPCONV
+        self.epotential = np.multiply(self.epotential, self.ECONV)
+        self.ekinetic = np.multiply(self.ekinetic, self.ECONV) 
+        self.temperature = np.multiply(self.temperature, self.TEMPCONV) 
+        self.pressure = np.multiply(self.pressure, self.PCONV)
+        self.virial = np.multiply(self.virial, self.ECONV) 
         self.temp_friction = np.multiply(self.temp_friction, self.TEMPCONV/self.TIMECONV)
         self.press_friction = np.multiply(self.press_friction, self.PCONV/self.TIMECONV)
 
@@ -179,9 +214,9 @@ class System(Constants):
             atom[6] = np.multiply(atom[6], self.ACONV/self.TIMECONV)
             atom[7] = np.multiply(atom[7], self.ACONV/self.TIMECONV)
             atom[8] = np.multiply(atom[8], self.ACONV/self.TIMECONV)
-            atom[9] = np.multiply(atom[9], self.ECONV/self.TIMECONV)
-            atom[10] = np.multiply(atom[10], self.ECONV/self.TIMECONV)
-            atom[11] = np.multiply(atom[11], self.ECONV/self.TIMECONV)
+            atom[9] = np.multiply(atom[9], self.ECONV/self.ACONV)
+            atom[10] = np.multiply(atom[10], self.ECONV/self.ACONV)
+            atom[11] = np.multiply(atom[11], self.ECONV/self.ACONV)
             atom[12] = np.multiply(atom[12], self.ECONV)
 
     def convertUnitsInv(self):
@@ -190,6 +225,7 @@ class System(Constants):
         self.ekinetic = np.divide(self.ekinetic, self.ECONV)
         self.temperature = np.divide(self.temperature, self.TEMPCONV)
         self.pressure = np.divide(self.pressure, self.PCONV)
+        self.virial = np.divide(self.virial, self.ECONV) 
         self.temp_friction = np.divide(self.temp_friction, self.TEMPCONV/self.TIMECONV)
         self.press_friction = np.divide(self.press_friction, self.PCONV/self.TIMECONV)
 
@@ -207,9 +243,9 @@ class System(Constants):
             atom[6] = np.divide(atom[6], self.ACONV/self.TIMECONV)
             atom[7] = np.divide(atom[7], self.ACONV/self.TIMECONV)
             atom[8] = np.divide(atom[8], self.ACONV/self.TIMECONV)
-            atom[9] = np.divide(atom[9], self.ECONV/self.TIMECONV)
-            atom[10] = np.divide(atom[10], self.ECONV/self.TIMECONV)
-            atom[11] = np.divide(atom[11], self.ECONV/self.TIMECONV)
+            atom[9] = np.divide(atom[9], self.ECONV/self.ACONV)
+            atom[10] = np.divide(atom[10], self.ECONV/self.ACONV)
+            atom[11] = np.divide(atom[11], self.ECONV/self.ACONV)
             atom[12] = np.divide(atom[12], self.ECONV)
 
     def save(self, filename = 'system.json'):
@@ -221,6 +257,7 @@ class System(Constants):
                     self.temperature.item(),
                     self.temp_friction.item(),
                     self.pressure.item(),
+                    self.virial.item(),
                     self.press_friction.item(),
                     self.epotential.item(),
                     self.ekinetic.item()
