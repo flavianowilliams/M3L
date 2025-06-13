@@ -1,8 +1,5 @@
 import numpy as np
 import json
-
-from numpy._core.numeric import dtype
-from numpy._core.numerictypes import int32
 from m3l.utils import Constants
 
 class Atom(Constants):
@@ -42,11 +39,17 @@ class System(Constants):
     molecule = np.array([], dtype = np.int32)
     sites = np.array([], dtype = np.int32)
     nsites = np.array([], dtype = np.int32)
-    atom = np.array([], dtype = np.float64)
     volume = np.array([], dtype = np.float64)
     virial = np.array([], dtype=np.float64)
     natom = np.array([], dtype=np.int32)
     nfree = np.array([], dtype=np.int32)
+    atype = np.array([], dtype=np.int32)
+    mass = np.array([], dtype=np.float64)
+    charge = np.array([], dtype=np.float64)
+    ra = np.array([], dtype=np.float64)
+    va = np.array([], dtype=np.float64)
+    fa = np.array([], dtype=np.float64)
+    ea = np.array([], dtype=np.float64)
 
     def loadSystem(self, filename):
 
@@ -56,11 +59,35 @@ class System(Constants):
             self.cell = np.array(json_file['cell'], dtype=np.float64)
             self.molecule = np.array(json_file['molecule'], dtype=np.int32)
 
-            self.atom = np.array(json_file['atom'], dtype=np.float64)
+            atom_list = json_file['atom'] 
+
+        atype = []
+        mass =[] 
+        charge = []
+        ra = []
+        va = []
+        fa = []
+        ea = []
+        for atom in atom_list:
+            atype.append(atom[0])
+            mass.append(atom[1])
+            charge.append(atom[2])
+            ra.append([atom[3], atom[4], atom[5]])
+            va.append([atom[6], atom[7], atom[8]])
+            fa.append([atom[9], atom[10], atom[11]])
+            ea.append(atom[12])
+
+        self.atype = np.array(atype, dtype=np.int32)
+        self.mass = np.array(mass, dtype=np.float64)
+        self.charge = np.array(charge, dtype=np.float64)
+        self.ra = np.array(ra, dtype=np.float64)
+        self.va = np.array(va, dtype=np.float64)
+        self.fa = np.array(fa, dtype=np.float64)
+        self.ea = np.array(ea, dtype=np.float64)
 
         self.setSites()
 
-        self.setNatom(len(self.atom))
+        self.setNatom(len(atom_list))
 
         self.setVolume()
 
@@ -86,7 +113,7 @@ class System(Constants):
         self.epotential = np.array(0.0, dtype = np.float64)
         self.molecule = np.array(molecule, np.int32)
 
-        self.atom = np.array([[]], dtype = np.float64)
+        self.atom = np.array([atoms], dtype = np.float64)
 
     def setNatom(self, natoms):
 
@@ -109,8 +136,8 @@ class System(Constants):
     def setEkinetic(self):
 
         sum_ = 0.0e0
-        for atom in self.atom:
-            sum_ += atom[1]*(atom[6]**2+atom[7]**2+atom[8]**2)
+        for i in range(self.natom):
+            sum_ += self.mass[i]*(self.va[i][0]**2+self.va[i][1]**2+self.va[i][2]**2)
 
         self.ekinetic = np.array(0.5e0*sum_, dtype=np.float64)
 
@@ -125,12 +152,12 @@ class System(Constants):
     def setVirial(self):
 
         sum_ = 0.0e0
-        for i in range(len(self.atom)):
-            for j in range(i+1, len(self.atom)):
-                drx = self.atom[j][3]-self.atom[i][3]
-                dry = self.atom[j][4]-self.atom[i][4]
-                drz = self.atom[j][5]-self.atom[i][5]
-                sum_ += self.atom[i][9]*drx+self.atom[i][10]*dry+self.atom[i][11]*drz
+        for i in range(self.natom):
+            for j in range(i+1, self.natom):
+                drx = self.ra[j][0]-self.ra[i][0]
+                dry = self.ra[j][1]-self.ra[i][1]
+                drz = self.ra[j][2]-self.ra[i][2]
+                sum_ += self.fa[i][0]*drx+self.fa[i][1]*dry+self.fa[i][2]*drz
 
         self.virial = np.array(sum_, dtype=np.float64)
 
@@ -144,11 +171,7 @@ class System(Constants):
 
     def setPotential(self):
 
-        sum_ = 0.0e0
-        for atom in self.atom:
-            sum_ += atom[12]
-
-        self.epotential = np.array(sum_, dtype = np.float64)
+        self.epotential = np.array(sum(self.ea), dtype = np.float64)
 
         return self.epotential
 
@@ -156,19 +179,19 @@ class System(Constants):
 
         list_ = []
 
-        for item in self.atom:
+        for item in self.atype:
 
-            if item[0] not in list_:
+            if item not in list_:
 
-                list_.append(item[0])
+                list_.append(item)
 
         for site in list_:
 
             nx = 0 
 
-            for item in self.atom:
+            for item in self.atype:
 
-                if site == item[0]:
+                if site == item:
 
                     nx += 1 
 
@@ -197,18 +220,25 @@ class System(Constants):
         self.cell[2] = self.cell[2]*self.ACONV
         self.volume = np.multiply(self.volume, self.ACONV**3)
 
-        for atom in self.atom:
-            atom[1] = np.multiply(atom[1], self.MCONV)
-            atom[3] = np.multiply(atom[3], self.ACONV)
-            atom[4] = np.multiply(atom[4], self.ACONV)
-            atom[5] = np.multiply(atom[5], self.ACONV)
-            atom[6] = np.multiply(atom[6], self.ACONV/self.TIMECONV)
-            atom[7] = np.multiply(atom[7], self.ACONV/self.TIMECONV)
-            atom[8] = np.multiply(atom[8], self.ACONV/self.TIMECONV)
-            atom[9] = np.multiply(atom[9], self.ECONV/self.ACONV)
-            atom[10] = np.multiply(atom[10], self.ECONV/self.ACONV)
-            atom[11] = np.multiply(atom[11], self.ECONV/self.ACONV)
-            atom[12] = np.multiply(atom[12], self.ECONV)
+        self.mass = np.multiply(self.mass, self.MCONV)
+        self.charge = np.multiply(self.charge, self.CHG)
+        self.ra = np.multiply(self.ra, self.ACONV)
+        self.va = np.multiply(self.va, self.ACONV/self.TIMECONV)
+        self.fa = np.multiply(self.fa, self.ECONV/self.ACONV)
+        self.ea = np.multiply(self.ea, self.ECONV)
+
+#        for atom in self.atom:
+#            atom[1] = np.multiply(atom[1], self.MCONV)
+#            atom[3] = np.multiply(atom[3], self.ACONV)
+#            atom[4] = np.multiply(atom[4], self.ACONV)
+#            atom[5] = np.multiply(atom[5], self.ACONV)
+#            atom[6] = np.multiply(atom[6], self.ACONV/self.TIMECONV)
+#            atom[7] = np.multiply(atom[7], self.ACONV/self.TIMECONV)
+#            atom[8] = np.multiply(atom[8], self.ACONV/self.TIMECONV)
+#            atom[9] = np.multiply(atom[9], self.ECONV/self.ACONV)
+#            atom[10] = np.multiply(atom[10], self.ECONV/self.ACONV)
+#            atom[11] = np.multiply(atom[11], self.ECONV/self.ACONV)
+#            atom[12] = np.multiply(atom[12], self.ECONV)
 
     def convertUnitsInv(self):
 
@@ -226,20 +256,44 @@ class System(Constants):
         self.cell[2] = np.divide(self.cell[2], self.ACONV)
         self.volume = np.divide(self.volume, self.ACONV**3)
 
-        for atom in self.atom:
-            atom[1] = np.divide(atom[1], self.MCONV)
-            atom[3] = np.divide(atom[3], self.ACONV)
-            atom[4] = np.divide(atom[4], self.ACONV)
-            atom[5] = np.divide(atom[5], self.ACONV)
-            atom[6] = np.divide(atom[6], self.ACONV/self.TIMECONV)
-            atom[7] = np.divide(atom[7], self.ACONV/self.TIMECONV)
-            atom[8] = np.divide(atom[8], self.ACONV/self.TIMECONV)
-            atom[9] = np.divide(atom[9], self.ECONV/self.ACONV)
-            atom[10] = np.divide(atom[10], self.ECONV/self.ACONV)
-            atom[11] = np.divide(atom[11], self.ECONV/self.ACONV)
-            atom[12] = np.divide(atom[12], self.ECONV)
+        self.mass = np.divide(self.mass, self.MCONV)
+        self.charge = np.divide(self.charge, self.CHG)
+        self.ra = np.divide(self.ra, self.ACONV)
+        self.va = np.divide(self.va, self.ACONV/self.TIMECONV)
+        self.fa = np.divide(self.fa, self.ECONV/self.ACONV)
+        self.ea = np.divide(self.ea, self.ECONV)
+
+#        for atom in self.atom:
+#            atom[1] = np.divide(atom[1], self.MCONV)
+#            atom[3] = np.divide(atom[3], self.ACONV)
+#            atom[4] = np.divide(atom[4], self.ACONV)
+#            atom[5] = np.divide(atom[5], self.ACONV)
+#            atom[6] = np.divide(atom[6], self.ACONV/self.TIMECONV)
+#            atom[7] = np.divide(atom[7], self.ACONV/self.TIMECONV)
+#            atom[8] = np.divide(atom[8], self.ACONV/self.TIMECONV)
+#            atom[9] = np.divide(atom[9], self.ECONV/self.ACONV)
+#            atom[10] = np.divide(atom[10], self.ECONV/self.ACONV)
+#            atom[11] = np.divide(atom[11], self.ECONV/self.ACONV)
+#            atom[12] = np.divide(atom[12], self.ECONV)
 
     def save(self, filename = 'system.json'):
+
+        atom_list = []
+        for i in range(self.natom):
+            atom_list.append([self.atype[i].item(),
+                             self.mass[i].item(), 
+                             self.charge[i].item(),
+                             self.ra[i][0].item(),
+                             self.ra[i][1].item(),
+                             self.ra[i][2].item(),
+                             self.va[i][0].item(),
+                             self.va[i][1].item(),
+                             self.va[i][2].item(),
+                             self.fa[i][0].item(),
+                             self.fa[i][1].item(),
+                             self.fa[i][2].item(),
+                             self.ea[i].item()]
+                             )
 
         dictfile = {
                 'description': self.description,
@@ -254,7 +308,7 @@ class System(Constants):
                     self.ekinetic.item()
                     ],
                 'molecule': self.molecule.tolist(),
-                'atom': self.atom.tolist()
+                'atom': atom_list
                 }
 
         outfile = json.dumps(dictfile, indent = 1)

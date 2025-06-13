@@ -3,7 +3,8 @@ module ensemble_module
   real(8) :: timestep, tstat, pstat, bfactor, temp_bath, press_bath, friction, eta
   real(8) :: ekinetic, energy, temperature, pressure, virial, temp_friction, press_friction, volume 
   real(8), dimension(3) :: cell
-  real(8), allocatable, dimension(:, :) :: atom
+  real(8), allocatable, dimension(:, :) :: ra, va, fa
+  real(8), allocatable, dimension(:) :: mass
 contains
 !
 !-Ensemble nvt berendsen
@@ -71,50 +72,96 @@ contains
 
   end subroutine press_friction_func
 
-  subroutine npt_berendsen_a()
+  subroutine nvt_berendsen_position()
 
-    implicit none
+    implicit none 
 
-    integer :: i
-
-    do i = 1, natom 
-      atom(i, 7) = atom(i, 7)+atom(i, 10)*0.5d0*timestep/atom(i, 2)
-      atom(i, 8) = atom(i, 8)+atom(i, 11)*0.5d0*timestep/atom(i, 2)
-      atom(i, 9) = atom(i, 9)+atom(i, 12)*0.5d0*timestep/atom(i, 2)
-    end do 
-
-  end subroutine npt_berendsen_a
-
-  subroutine npt_berendsen_b()
-
-    implicit none
-
-    integer :: i
+    integer :: i, j
 
     do i = 1, natom 
-      atom(i, 4) = atom(i, 4)*eta+atom(i, 7)*timestep
-      atom(i, 5) = atom(i, 5)*eta+atom(i, 8)*timestep
-      atom(i, 6) = atom(i, 6)*eta+atom(i, 9)*timestep
+      do j = 1, 3 
+        ra(i, j) = ra(i, j)+timestep*va(i, j)
+      end do 
     end do 
 
-  end subroutine npt_berendsen_b
+  end subroutine nvt_berendsen_position
 
-  subroutine npt_berendsen_c()
+  subroutine nvt_berendsen_velocity()
 
-    implicit none
+    implicit none 
 
-    integer :: i
+    integer :: i, j
+
+    do i = 1, natom 
+      do j = 1, 3 
+        va(i, j) = va(i, j)+0.5d0*timestep*fa(i, j)/mass(i)
+      end do
+    end do 
+
+  end subroutine nvt_berendsen_velocity
+
+  subroutine nvt_berendsen_velocity_update()
+
+    implicit none 
+
+    integer :: i, j
     real(8) :: sigma, qui
 
     sigma = 0.5d0*nfree*temp_bath
     qui = sqrt(1.0d0+timestep*(sigma/ekinetic-1.0d0)/tstat)
 
     do i = 1, natom 
-      atom(i, 7) = atom(i, 7)*qui
-      atom(i, 8) = atom(i, 8)*qui
-      atom(i, 9) = atom(i, 9)*qui
+      do j = 1, 3 
+        va(i, j) = va(i, j)*qui 
+      end do
     end do 
 
-  end subroutine npt_berendsen_c
+  end subroutine nvt_berendsen_velocity_update
+
+  subroutine npt_berendsen_velocity()
+
+    implicit none
+
+    integer :: i, j
+
+    do i = 1, natom 
+      do j = 1, 3 
+        va(i, j) = va(i, j)+0.5d0*timestep*fa(i, j)/mass(i)
+      end do 
+    end do 
+
+  end subroutine npt_berendsen_velocity
+
+  subroutine npt_berendsen_position()
+
+    implicit none
+
+    integer :: i, j 
+
+    do i = 1, natom 
+      do j = 1, 3 
+        ra(i, j) = ra(i, j)*eta+va(i, j)*timestep
+      end do 
+    end do 
+
+  end subroutine npt_berendsen_position
+
+  subroutine npt_berendsen_velocity_update()
+
+    implicit none
+
+    integer :: i, j
+    real(8) :: sigma, qui
+
+    sigma = 0.5d0*nfree*temp_bath
+    qui = sqrt(1.0d0+timestep*(sigma/ekinetic-1.0d0)/tstat)
+
+    do i = 1, natom 
+      do j = 1, 3 
+        va(i, j) = va(i, j)*qui
+      end do 
+    end do 
+
+  end subroutine npt_berendsen_velocity_update
 
 end module ensemble_module

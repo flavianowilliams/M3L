@@ -1,7 +1,8 @@
 module structure_module 
-  integer :: natom, nfree
+  integer :: natom
   real(8) :: eta
   real(8), dimension(3) :: cell
+  real(8), allocatable, dimension(:, :) :: ra 
   real(8), allocatable, dimension(:, :) :: atom
 contains
 !
@@ -10,12 +11,12 @@ contains
   subroutine ccp()
 
     implicit none
-    integer :: i 
+    integer :: i, j 
 
     do i = 1, natom
-      atom(i, 4) = atom(i, 4)-cell(1)*nint(atom(i, 4)/cell(1))
-      atom(i, 5) = atom(i, 5)-cell(2)*nint(atom(i, 5)/cell(2))
-      atom(i, 6) = atom(i, 6)-cell(3)*nint(atom(i, 6)/cell(3))
+      do j = 1, 3
+        ra(i, j) = ra(i, j)-cell(j)*nint(ra(i, j)/cell(j))
+      end do 
     end do 
 
   end subroutine ccp
