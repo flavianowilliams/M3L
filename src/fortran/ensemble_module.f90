@@ -31,6 +31,19 @@ contains
 
   end subroutine pressure_func
 
+  subroutine setTempFrictionHoover()
+
+    implicit none
+
+    real(8) :: sigma, qmass
+
+    sigma = 0.5d0*nfree*temp_bath
+    qmass = 2.0d0*sigma*tstat**2.0d0 
+
+    temp_friction = temp_friction + 0.5d0*(ekinetic-sigma)/qmass
+
+  end subroutine setTempFrictionHoover
+
   subroutine friction_func()
 
     implicit none
@@ -163,5 +176,77 @@ contains
     end do 
 
   end subroutine npt_berendsen_velocity_update
+
+  subroutine nvt_hoover_velocity()
+
+    implicit none 
+
+    integer :: i, j
+
+    do i = 1, natom 
+      do j = 1, 3 
+        va(i, j) = va(i, j)*exp(-0.5d0*temp_friction*timestep)
+      end do 
+    end do 
+
+  end subroutine nvt_hoover_velocity
+
+  subroutine nvt_hoover_velocity_update()
+
+    implicit none 
+
+    integer :: i, j
+
+    do i = 1, natom 
+      do j = 1, 3 
+        va(i, j) = va(i, j)+0.5d0*timestep*fa(i, j)/mass(i)
+      end do 
+    end do 
+
+  end subroutine nvt_hoover_velocity_update
+
+  subroutine nvt_hoover_position()
+
+    implicit none 
+
+    integer :: i, j
+
+    do i = 1, natom 
+      do j = 1, 3 
+        ra(i, j) = ra(i, j)+timestep*va(i, j)
+      end do 
+    end do 
+
+  end subroutine nvt_hoover_position
+
+!-npt nose-hoover
+  
+  subroutine setTempFrictionHooverNPT()
+
+    implicit none
+
+    real(8) :: sigma, qmass, pmass
+
+    sigma = 0.5d0*nfree*temp_bath
+    qmass = 2.0d0*sigma*tstat**2.0d0 
+    pmass = (nfree+3)*temp_bath*pstat**2
+
+    temp_friction = temp_friction + 0.125d0*(2.0d0*ekinetic+pmass*press_friction**2-2.0d0*sigma-temp_bath)/qmass
+
+  end subroutine setTempFrictionHooverNPT
+
+  subroutine setpressFrictionHoover()
+
+    implicit none
+
+    real(8) :: pmass
+
+    pmass = (nfree+3)*temp_bath*pstat**2
+
+    press_friction = press_friction*exp(-0.125d0*temp_friction*timestep)
+    press_friction = press_friction+0.25d0*timestep*(3.0d0*(pressure-press_bath))*volume/pmass
+    press_friction = press_friction*exp(-0.125d0*temp_friction*timestep)
+
+  end subroutine setpressFrictionHoover
 
 end module ensemble_module

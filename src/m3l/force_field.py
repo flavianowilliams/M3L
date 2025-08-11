@@ -8,12 +8,24 @@ class ForceField2(Constants):
     van_der_waals = []
     electrostatic = None
 
+    def sites(self, *args):
+
+        list1_ = []
+        list2_ = []
+        for item in args:
+            list1_.append(item[0])
+            list2_.append(item[1])
+
+        self.van_der_waals = [list1_, list2_]
+
+        return self.van_der_waals
+
     def intermolecular(self, van_der_waals, electrostatic, rvdw = 0.0e0, rcoul = 0.0e0):
 
-        self.rvdw = rvdw
-        self.rcoul = rcoul
         self.van_der_waals = van_der_waals
         self.electrostatic = electrostatic
+        self.rvdw = rvdw
+        self.rcoul = rcoul
 
     def hook(self):
 
@@ -22,7 +34,7 @@ class ForceField2(Constants):
 
         self.intermolecular(vdw, electrostatic)
 
-        self.nvdw = len(self.van_der_waals)
+        self.nvdw = len(self.van_der_waals[0])
 
     def hook_output(self):
 
@@ -36,12 +48,12 @@ class ForceField2(Constants):
 
     def convertUnits(self):
 
-        for item in self.van_der_waals:
+        for item in self.van_der_waals[1]:
             
-            item[2] = item[2]*self.ECONV
-            item[2] = item[2].item()
-            item[3] = item[3]*self.ACONV
-            item[3] = item[3].item()
+            item[0] = item[0]*self.ECONV
+            item[0] = item[0].item()
+            item[1] = item[1]*self.ACONV
+            item[1] = item[1].item()
 
 # classe responsavel por definir as interaçoes de Van der Waals 
 
@@ -49,17 +61,15 @@ class Intermolecular():
 
     def site(s1, s2, eps, sigma):
 
-        list_ = [s1, s2, eps, sigma]
+        return [s1, s2], [eps, sigma]
 
-        return list_
-
-    def sites(*args):
-
-        list_ = []
-        for item in args:
-            list_.append(item)
-
-        return list_
+#    def sites(*args):
+#
+#        list_ = []
+#        for item in args:
+#            list_.append(item)
+#
+#        return list_
 
 # classe responsavel para definicao das moleculas
 

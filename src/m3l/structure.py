@@ -36,13 +36,14 @@ class System(Constants):
     pressure = np.array([], dtype = np.float64)
     epotential = np.array([], dtype = np.float64)
     ekinetic = np.array([], dtype = np.float64)
-    molecule = np.array([], dtype = np.int32)
+    inter_pairs = np.array([], dtype=np.int32)
     sites = np.array([], dtype = np.int32)
     nsites = np.array([], dtype = np.int32)
     volume = np.array([], dtype = np.float64)
     virial = np.array([], dtype=np.float64)
     natom = np.array([], dtype=np.int32)
     nfree = np.array([], dtype=np.int32)
+    ma = np.array([], dtype=np.int32)
     atype = np.array([], dtype=np.int32)
     mass = np.array([], dtype=np.float64)
     charge = np.array([], dtype=np.float64)
@@ -57,10 +58,10 @@ class System(Constants):
             json_file = json.load(file)
             self.description = json_file['description']
             self.cell = np.array(json_file['cell'], dtype=np.float64)
-            self.molecule = np.array(json_file['molecule'], dtype=np.int32)
 
             atom_list = json_file['atom'] 
 
+        ma = []
         atype = []
         mass =[] 
         charge = []
@@ -69,14 +70,16 @@ class System(Constants):
         fa = []
         ea = []
         for atom in atom_list:
-            atype.append(atom[0])
-            mass.append(atom[1])
-            charge.append(atom[2])
-            ra.append([atom[3], atom[4], atom[5]])
-            va.append([atom[6], atom[7], atom[8]])
-            fa.append([atom[9], atom[10], atom[11]])
-            ea.append(atom[12])
+            ma.append(atom[0])
+            atype.append(atom[1])
+            mass.append(atom[2])
+            charge.append(atom[3])
+            ra.append([atom[4], atom[5], atom[6]])
+            va.append([atom[7], atom[8], atom[9]])
+            fa.append([atom[10], atom[11], atom[12]])
+            ea.append(atom[13])
 
+        self.ma = np.array(ma, dtype=np.int32)
         self.atype = np.array(atype, dtype=np.int32)
         self.mass = np.array(mass, dtype=np.float64)
         self.charge = np.array(charge, dtype=np.float64)
@@ -84,6 +87,8 @@ class System(Constants):
         self.va = np.array(va, dtype=np.float64)
         self.fa = np.array(fa, dtype=np.float64)
         self.ea = np.array(ea, dtype=np.float64)
+
+#        self.setMolecules()
 
         self.setSites()
 
@@ -103,7 +108,7 @@ class System(Constants):
 
         self.setPotential()
 
-    def setSystem(self, description, temperature, pressure, cell, molecule, atoms):
+    def setSystem(self, description, temperature, pressure, cell, atoms):
 
         self.description = description
         self.temperature = np.array(temperature, dtype = np.float64)
@@ -111,9 +116,40 @@ class System(Constants):
         self.virial = np.array(0.0, dtype = np.float64)
         self.cell = np.array(cell, dtype = np.float64)
         self.epotential = np.array(0.0, dtype = np.float64)
-        self.molecule = np.array(molecule, np.int32)
+        self.temp_friction = np.array(0.0e0, dtype = np.float64)
+        self.press_friction = np.array(0.0e0, dtype = np.float64)
 
-        self.atom = np.array([atoms], dtype = np.float64)
+        ra = []
+        mass = []
+        atype = []
+        ma = []
+        charge = []
+        fa = []
+        ea = []
+        for atom in atoms:
+            ma.append(atom[0])
+            atype.append(atom[1])
+            mass.append(atom[2])
+            charge.append(atom[3])
+            ra.append([atom[4], atom[5], atom[6]])
+            fa.append([0.0, 0.0, 0.0])
+            ea.append(0.0)
+            
+        self.ra = np.array(ra, dtype = np.float64)
+        self.mass = np.array(mass, dtype = np.float64)
+        self.charge = np.array(charge, dtype = np.float64)
+        self.ea = np.array(ea, dtype = np.float64)
+        self.fa = np.array(fa, dtype = np.float64)
+        self.atype = np.array(atype, dtype = np.int32)
+        self.ma = np.array(ma, dtype = np.int32)
+
+        self.setNatom(len(atoms))
+
+        self.setNFree()
+
+        self.setVelocity()
+
+        self.setEkinetic()
 
     def setNatom(self, natoms):
 
@@ -142,6 +178,15 @@ class System(Constants):
         self.ekinetic = np.array(0.5e0*sum_, dtype=np.float64)
 
         return self.ekinetic
+
+    def setVelocity(self):
+
+        lista = []
+        for i in range(self.natom):
+            var = np.sqrt(self.nfree*self.temperature/self.mass[i])
+            lista.append([var, var, var])
+
+        self.va = np.array(lista, dtype=np.float64)
 
     def setTemperature(self):
 
@@ -175,35 +220,33 @@ class System(Constants):
 
         return self.epotential
 
+#    def setMolecules(self):
+#
+#        list_ = []
+#        for item in self.ma:
+#            if item not in list_:
+#                list_.append(item)
+#
+#        self.molecules = np.array(list_, dtype='b')
+#
+#        return self.molecules
+
     def setSites(self):
 
         list_ = []
-
-        for item in self.atype:
-
-            if item not in list_:
-
-                list_.append(item)
-
-        for site in list_:
-
-            nx = 0 
-
-            for item in self.atype:
-
-                if site == item:
-
+        list2_ = []
+        nx = 0
+        for i in range(len(self.atype)):
+            for j in range(i+1, len(self.atype)):
+                if self.ma[j] is not self.ma[i]:
+                    list_.append([i, j])
+                    nx = 1 
+                else:
                     nx += 1 
+                list2_.append(nx)
 
-            if self.sites.size == 0:
-
-                self.sites = np.array([[site, nx]], dtype = np.int32)
-
-            else:
-
-                self.sites = np.append([self.sites], [site, nx], axis = 0)
-
-        self.nsites = len(self.sites)
+        self.sites = np.array(list_, dtype=np.int32)
+        self.nsites = np.array(list2_, dtype=np.int32) 
 
     def convertUnits(self):
 
@@ -226,19 +269,6 @@ class System(Constants):
         self.va = np.multiply(self.va, self.ACONV/self.TIMECONV)
         self.fa = np.multiply(self.fa, self.ECONV/self.ACONV)
         self.ea = np.multiply(self.ea, self.ECONV)
-
-#        for atom in self.atom:
-#            atom[1] = np.multiply(atom[1], self.MCONV)
-#            atom[3] = np.multiply(atom[3], self.ACONV)
-#            atom[4] = np.multiply(atom[4], self.ACONV)
-#            atom[5] = np.multiply(atom[5], self.ACONV)
-#            atom[6] = np.multiply(atom[6], self.ACONV/self.TIMECONV)
-#            atom[7] = np.multiply(atom[7], self.ACONV/self.TIMECONV)
-#            atom[8] = np.multiply(atom[8], self.ACONV/self.TIMECONV)
-#            atom[9] = np.multiply(atom[9], self.ECONV/self.ACONV)
-#            atom[10] = np.multiply(atom[10], self.ECONV/self.ACONV)
-#            atom[11] = np.multiply(atom[11], self.ECONV/self.ACONV)
-#            atom[12] = np.multiply(atom[12], self.ECONV)
 
     def convertUnitsInv(self):
 
@@ -263,24 +293,12 @@ class System(Constants):
         self.fa = np.divide(self.fa, self.ECONV/self.ACONV)
         self.ea = np.divide(self.ea, self.ECONV)
 
-#        for atom in self.atom:
-#            atom[1] = np.divide(atom[1], self.MCONV)
-#            atom[3] = np.divide(atom[3], self.ACONV)
-#            atom[4] = np.divide(atom[4], self.ACONV)
-#            atom[5] = np.divide(atom[5], self.ACONV)
-#            atom[6] = np.divide(atom[6], self.ACONV/self.TIMECONV)
-#            atom[7] = np.divide(atom[7], self.ACONV/self.TIMECONV)
-#            atom[8] = np.divide(atom[8], self.ACONV/self.TIMECONV)
-#            atom[9] = np.divide(atom[9], self.ECONV/self.ACONV)
-#            atom[10] = np.divide(atom[10], self.ECONV/self.ACONV)
-#            atom[11] = np.divide(atom[11], self.ECONV/self.ACONV)
-#            atom[12] = np.divide(atom[12], self.ECONV)
-
     def save(self, filename = 'system.json'):
 
         atom_list = []
         for i in range(self.natom):
-            atom_list.append([self.atype[i].item(),
+            atom_list.append([self.ma[i].item(),
+                             self.atype[i].item(),
                              self.mass[i].item(), 
                              self.charge[i].item(),
                              self.ra[i][0].item(),
@@ -307,7 +325,7 @@ class System(Constants):
                     self.epotential.item(),
                     self.ekinetic.item()
                     ],
-                'molecule': self.molecule.tolist(),
+                #                'molecule': self.molecules.tolist(),
                 'atom': atom_list
                 }
 
