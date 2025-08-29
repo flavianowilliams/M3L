@@ -34,6 +34,3 @@ class Constants():
 
     PCONVINV = np.array(1.0e0/PCONV, dtype = np.float64)           # atm^-1
 
-    # Some important constants
-
-    BETAFACTOR = np.array(5.0e-5, dtype = np.float64)              # Isothermal compressibility of liquid water (atm)
