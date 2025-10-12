@@ -37,7 +37,63 @@ class Ensemble(Constants):
 
     def nve_verlet(self):
 
-        print("não valendo...")
+#-atualizando coordenadas canônicas
+
+        for i in range(self.sys.natom):
+            self.sys.va[i][0] = self.sys.va[i][0]+0.5e0*self.timestep*self.sys.fa[i][0]
+            self.sys.va[i][1] = self.sys.va[i][1]+0.5e0*self.timestep*self.sys.fa[i][1]
+            self.sys.va[i][2] = self.sys.va[i][2]+0.5e0*self.timestep*self.sys.fa[i][2]
+
+        for i in range(self.sys.natom):
+            self.sys.ra[i][0] = self.sys.ra[i][0]+self.timestep*self.sys.va[i][0]
+            self.sys.ra[i][1] = self.sys.ra[i][1]+self.timestep*self.sys.va[i][1]
+            self.sys.ra[i][2] = self.sys.ra[i][2]+self.timestep*self.sys.va[i][2]
+
+#-aplicando condicoes de contorno periodicas
+        
+        libstruct.natom = self.sys.natom
+        libstruct.cell = self.sys.cell
+        libstruct.ra = self.sys.ra
+        libstruct.ccp()
+
+#-calculando campo de força
+
+        self.setForces()
+
+#-atualizando coordenadas canônicas
+
+        for i in range(self.sys.natom):
+            self.sys.va[i][0] = self.sys.va[i][0]+0.5e0*self.timestep*self.sys.fa[i][0]
+            self.sys.va[i][1] = self.sys.va[i][1]+0.5e0*self.timestep*self.sys.fa[i][1]
+            self.sys.va[i][2] = self.sys.va[i][2]+0.5e0*self.timestep*self.sys.fa[i][2]
+
+#-calculando energia cinética
+
+        libtherm.va = self.sys.va 
+        libtherm.setekinetic()
+
+#-atualizando coeficiente de friccao
+
+        libens.ekinetic = libtherm.ekinetic
+        libens.settempfrictionhoover()
+        
+#-calculando energia cinética e temperatura
+
+        libtherm.nfree = self.sys.nfree 
+        libtherm.setekinetic()
+        libtherm.settemperature()
+
+#-calculando pressão 
+
+        libtherm.virial = libforce.virial
+        libtherm.cell = self.sys.cell
+        libtherm.setvolume()
+        libtherm.setpressure()
+    
+#-atribuindo variaveis canonicas para ser utilizado posteriormente
+
+        libens.ra = self.sys.ra 
+        libens.va = self.sys.va 
 
     def nvt_hoover(self):
 

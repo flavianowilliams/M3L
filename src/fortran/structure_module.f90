@@ -17,6 +17,7 @@ contains
     do i = 1, natom
       do j = 1, 3
         ra(i, j) = ra(i, j)-cell(j)*nint(ra(i, j)/cell(j))
+!        ra(i, j) = ra(i, j)-cell(j)*min(2.0d0, nint(ra(i, j)/cell(j)))
       end do 
     end do 
 

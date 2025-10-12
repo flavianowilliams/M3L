@@ -4,13 +4,13 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "m3l"
-version = "2025.07.dev0"
+version = "2025.09.dev0"
 authors = [{name = "Flaviano Williams Fernandes", email = "flaviano.fernandes@ifpr.edu.br"}]
 description = "Machine Learning and Molecular Modelling"
 license = {text = "MIT"}
 keywords = ["Machine learning, molecular modelling "]
 requires-python = ">=3.11"
-dependencies = ["numpy", "scipy"]
+dependencies = ["numpy"]
 
 [project.urls]
 Repository = "https://github.com/flavianowilliams/M3L"
