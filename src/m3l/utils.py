@@ -1,15 +1,8 @@
-#from scipy import constants as cte
 import numpy as np 
 
 class Constants():
 
     # physical constants
-#    KB = cte.value('Boltzmann constant')
-#    N0 = cte.value('Avogadro constant')
-#    A0 = cte.value('atomic unit of length')
-#    HARTREE = cte.value('atomic unit of energy')
-#    ELECTRON_MASS = cte.value('atomic unit of mass')
-#    PERIOD_BOHR = cte.value('atomic unit of time')
 
     PERIOD_BOHR = 2.4188843265864e-17
     ELECTRON_MASS = 9.1093837139e-31
@@ -17,12 +10,7 @@ class Constants():
     KB = 1.380649e-23
     N0 = 6.02214076e+23
     A0 = 5.29177210544e-11
-#    print(PERIOD_BOHR)
-#    print(ELECTRON_MASS)
-#    print(HARTREE)
-#    print(KB)
-#    print(N0)
-#    print(A0)
+
     # Conversion from input units to SI 
     ACONV = 1.0e-10                                                # angstrom => metre 
     ECONV = 6.95e-21                                               # kcal/mol => Joule 

@@ -154,21 +154,6 @@ class Ensemble(Constants):
 #-calculando campo de força
 
         self.setForces()
-#        libforce.atype = self.sys.atype
-#        libforce.charge = self.sys.charge
-#        libforce.ra = libstruct.ra 
-#        libforce.fa = self.sys.fa 
-#        libforce.ea = self.sys.ea 
-#        libforce.sites = self.sys.sites
-#        libforce.nsites = self.sys.nsites
-#        libforce.ma = self.sys.ma
-#        libforce.cell = libstruct.cell
-#        libforce.nvdw = self.nvdw 
-#        libforce.rvdw = self.rvdw
-#        libforce.rcoul = self.rcoul
-#        libforce.ijinter = self.ijinter
-#        libforce.prmvdw = self.prmvdw
-#        libforce.setforces()
 
 #-atualizando coordenadas canônicas
 

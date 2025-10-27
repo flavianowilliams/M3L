@@ -220,17 +220,6 @@ class System(Constants):
 
         return self.epotential
 
-#    def setMolecules(self):
-#
-#        list_ = []
-#        for item in self.ma:
-#            if item not in list_:
-#                list_.append(item)
-#
-#        self.molecules = np.array(list_, dtype='b')
-#
-#        return self.molecules
-
     def setSites(self):
 
         list_ = []
@@ -325,38 +314,10 @@ class System(Constants):
                     self.epotential.item(),
                     self.ekinetic.item()
                     ],
-                #                'molecule': self.molecules.tolist(),
                 'atom': atom_list
                 }
 
         outfile = json.dumps(dictfile, indent = 1)
         with open(filename, 'w') as file:
             file.write(outfile)
-
-#class Symmetry(System):
-#
-#    def __init__(self):
-#
-#        self.eta_prm = 0.0
-#        self.rs_prm = 0.0
-#        self.rc_prm = 6.0
-#
-#    def symm2D(self):
-#        
-#        for atm in self.atoms:
-#            sum_ = 0.e0
-#            for atom in self.atoms:
-#                if atom[0] != atm[0]:
-#                    dr = np.sqrt((atm[4]-atom[4])**2+(atm[5]-atom[5])**2+(atm[6]-atom[6])**2)
-#                    sum_ += np.exp(-self.eta_prm*(dr-self.rs_prm)**2)*self.setSF(dr)
-#            return sum_
-#
-#    def setSF(self, dr):
-#
-#        if dr <= self.rc_prm:
-#            func = 0.5*(np.cos(np.pi*dr/self.rc_prm)+1.e0)
-#        else:
-#            func = 0.e0
-#
-#        return func
 
