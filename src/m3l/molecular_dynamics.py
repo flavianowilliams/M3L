@@ -67,6 +67,10 @@ class Ensemble(Constants):
             self.sys.va[i][1] = self.sys.va[i][1]+0.5e0*self.timestep*self.sys.fa[i][1]
             self.sys.va[i][2] = self.sys.va[i][2]+0.5e0*self.timestep*self.sys.fa[i][2]
 
+#-calculando velocidades atômicas
+
+        self.sys.setVelocity()
+
 #-calculando energia cinética
 
         libtherm.va = self.sys.va 
