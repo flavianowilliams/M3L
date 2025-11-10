@@ -88,8 +88,6 @@ class System(Constants):
         self.fa = np.array(fa, dtype=np.float64)
         self.ea = np.array(ea, dtype=np.float64)
 
-#        self.setMolecules()
-
         self.setSites()
 
         self.setNatom(len(atom_list))
@@ -143,7 +141,11 @@ class System(Constants):
         self.atype = np.array(atype, dtype = np.int32)
         self.ma = np.array(ma, dtype = np.int32)
 
+        self.setSites()
+
         self.setNatom(len(atoms))
+
+        self.setVolume()
 
         self.setNFree()
 
